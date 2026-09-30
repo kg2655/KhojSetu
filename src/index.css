@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --paper-base: #F4F0E6;
+    --paper-card: #FAF7F0;
+    --paper-border: #D8CEBD;
+    --paper-dark-border: #BDB29F;
+    --clay-accent: #A65E3B;
+    --umber-accent: #8B5E3C;
+    --olive-safe: #5C6E41;
+    --charcoal-ink: #332E27;
+    --muted-clay: #B34F3F;
+    --weathered-stone: #6B6256;
+  }
+
+  body {
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #332E27;
+    background-color: #F4F0E6;
+  }
+
+  h1, h2, h3, .font-archival {
+    font-family: 'Source Serif 4', Georgia, Cambria, serif;
+  }
+
+  code, pre, .font-mono-coord {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+}
+
+/* Subtle archival grid and ruling paper helpers */
+.paper-ruled {
+  background-image: linear-gradient(#D8CEBD 1px, transparent 1px);
+  background-size: 100% 28px;
+}
+
+.excavation-grid-bg {
+  background-image: 
+    linear-gradient(to right, rgba(216, 206, 189, 0.45) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(216, 206, 189, 0.45) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.border-parchment {
+  border-color: #D8CEBD;
+}
+
+/* Custom scrollbars that feel like archival ledger */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #EAE3D2;
+}
+::-webkit-scrollbar-thumb {
+  background: #C4B9A3;
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A69B85;
+}

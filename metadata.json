@@ -1,0 +1,8 @@
+{
+  "name": "KhojSetu",
+  "description": "KhojSetu — Connecting Discoveries Across the Field",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
