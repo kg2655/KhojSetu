@@ -1,0 +1,147 @@
+<mxfile host="app.diagrams.net" pages="2">
+  <diagram name="01 Memory and exchange" id="01-Memory-and-exchange">
+    <mxGraphModel dx="1585" dy="865" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="850" background="#F4F1E7" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="brand" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#34412E;fontFamily=Helvetica;fontSize=24;spacing=15;arcSize=10;align=left;verticalAlign=middle;fontColor=#34412E;" value="&lt;b&gt;KHOJSETU&lt;/b&gt;  /  DISCOVER. REMEMBER. CONNECT." vertex="1">
+          <mxGeometry height="45" width="1350" x="40" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#34412E;fontFamily=Helvetica;fontSize=36;spacing=15;arcSize=10;align=left;verticalAlign=middle;fontColor=#34412E;" value="From a field discovery to shared archaeological memory" vertex="1">
+          <mxGeometry height="60" width="1390" x="40" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="zone" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EBEEDF;strokeColor=#BFCBAC;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;dashed=1;" value="" vertex="1">
+          <mxGeometry height="540" width="970" x="40" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="cloudzone" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0E5D6;strokeColor=#D2BCA0;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;dashed=1;" value="" vertex="1">
+          <mxGeometry height="540" width="420" x="1040" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="device" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;align=left;verticalAlign=middle;fontColor=#34412E;" value="FIELD LAPTOP  ·  recording and retrieval work offline" vertex="1">
+          <mxGeometry height="50" width="900" x="65" y="181" as="geometry" />
+        </mxCell>
+        <mxCell id="shared" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#34412E;fontFamily=Helvetica;fontSize=17;spacing=15;arcSize=10;align=left;verticalAlign=middle;fontColor=#34412E;" value="SHARED TEAM KNOWLEDGE" vertex="1">
+          <mxGeometry height="50" width="360" x="1060" y="181" as="geometry" />
+        </mxCell>
+        <mxCell id="record" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;" value="&lt;b&gt;1. RECORD&lt;/b&gt;&lt;br&gt;&lt;br&gt;Field notebook&lt;br&gt;&lt;font style=&quot;font-size:14px&quot;&gt;Notes · grid · layer · depth&lt;/font&gt;" vertex="1">
+          <mxGeometry height="140" width="250" x="75" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="model" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;" value="&lt;b&gt;2. EMBED LOCALLY&lt;/b&gt;&lt;br&gt;&lt;br&gt;MiniLM text model&lt;br&gt;&lt;font style=&quot;font-size:14px&quot;&gt;Text → 384 numbers&lt;/font&gt;" vertex="1">
+          <mxGeometry height="140" width="250" x="375" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="edge" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DFE8D1;strokeColor=#91A779;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;" value="&lt;b&gt;3. SEARCH &amp; REMEMBER&lt;/b&gt;&lt;br&gt;&lt;br&gt;Qdrant Edge&lt;br&gt;&lt;font style=&quot;font-size:14px&quot;&gt;Dense + lexical vectors&lt;br&gt;Metadata filters&lt;/font&gt;" vertex="1">
+          <mxGeometry height="140" width="295" x="675" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="record" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#708353;strokeWidth=2;fontSize=13;fontColor=#6E755E;labelBackgroundColor=#F4F1E7;flowAnimation=1;" target="model" value="description">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="model" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#708353;strokeWidth=2;fontSize=13;fontColor=#6E755E;labelBackgroundColor=#F4F1E7;flowAnimation=1;" target="edge" value="vectors + context">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="journal" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E6D4;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;" value="&lt;b&gt;SQLite record journal&lt;/b&gt;&lt;br&gt;Records · versions · queue · activity" vertex="1">
+          <mxGeometry height="115" width="250" x="75" y="535" as="geometry" />
+        </mxCell>
+        <mxCell id="private" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F1DECF;strokeColor=#D0A283;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;" value="&lt;b&gt;RETAIN LOCALLY&lt;/b&gt;&lt;br&gt;Sensitive · unapproved&lt;br&gt;Explicitly local records" vertex="1">
+          <mxGeometry height="115" width="250" x="375" y="535" as="geometry" />
+        </mxCell>
+        <mxCell id="policy" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;" value="&lt;b&gt;4. SHARING POLICY&lt;/b&gt;&lt;br&gt;Approval · sensitivity&lt;br&gt;Visibility · priority" vertex="1">
+          <mxGeometry height="115" width="295" x="675" y="535" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="record" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#708353;strokeWidth=2;fontSize=13;fontColor=#6E755E;labelBackgroundColor=#F4F1E7;flowAnimation=1;" target="journal" value="save">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="edge" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#708353;strokeWidth=2;fontSize=13;fontColor=#6E755E;labelBackgroundColor=#F4F1E7;flowAnimation=1;" target="policy" value="pending changes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="policy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#A56444;strokeWidth=2;fontSize=13;fontColor=#6E755E;labelBackgroundColor=#F4F1E7;flowAnimation=1;" target="private" value="not eligible">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="gateway" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;" value="&lt;b&gt;5. EXCHANGE GATEWAY&lt;/b&gt;&lt;br&gt;Version checks · retry IDs&lt;br&gt;Human conflict review" vertex="1">
+          <mxGeometry height="140" width="340" x="1080" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="server" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EAD1BA;strokeColor=#B28158;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;" value="&lt;b&gt;QDRANT SERVER&lt;/b&gt;&lt;br&gt;Shared vector knowledge&lt;br&gt;&lt;font style=&quot;font-size:14px&quot;&gt;Local Docker in this demo&lt;/font&gt;" vertex="1">
+          <mxGeometry height="115" width="340" x="1080" y="535" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="policy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#A56444;strokeWidth=2;fontSize=13;fontColor=#6E755E;labelBackgroundColor=#F4F1E7;exitX=1;exitY=0.5;entryX=0;entryY=0.7;flowAnimation=1;" target="gateway" value="approved changes">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#A56444;strokeWidth=2;fontSize=13;fontColor=#6E755E;labelBackgroundColor=#F4F1E7;flowAnimation=1;" target="server" value="real upserts + acknowledgements">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="gateway" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;endArrow=block;endFill=1;strokeColor=#A56444;strokeWidth=2;fontSize=13;fontColor=#6E755E;labelBackgroundColor=#F4F1E7;exitX=0;exitY=0.2;entryX=1;entryY=0.2;flowAnimation=1;" target="edge" value="shared updates → local index">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="caption" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;align=left;verticalAlign=middle;fontColor=#34412E;" value="Search example: “decorated pottery” → related “painted ceramic fragment” records" vertex="1">
+          <mxGeometry height="50" width="900" x="60" y="435" as="geometry" />
+        </mxCell>
+        <mxCell id="honesty" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#34412E;fontFamily=Helvetica;fontSize=16;spacing=15;arcSize=10;align=left;verticalAlign=middle;fontColor=#34412E;" value="40 synthetic demo records  •  Real local embeddings and Qdrant engines  •  Manual exchange  •  No generative archaeological claims" vertex="1">
+          <mxGeometry height="60" width="1420" x="45" y="744" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram name="02 Why archaeology and impact" id="02-Why-archaeology-and-impact">
+    <mxGraphModel grid="1" page="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" pageScale="1" pageWidth="1500" pageHeight="850" background="#F4F1E7" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#34412E;fontFamily=Helvetica;fontSize=36;spacing=15;arcSize=10;align=left;verticalAlign=middle;fontColor=#34412E;" value="Why archaeology? Context turns a find into evidence." vertex="1">
+          <mxGeometry height="80" width="1400" x="40" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="subtitle" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#34412E;fontFamily=Helvetica;fontSize=20;spacing=15;arcSize=10;align=left;verticalAlign=middle;fontColor=#34412E;" value="Our chosen use case for Qdrant’s general edge-memory challenge" vertex="1">
+          <mxGeometry height="50" width="1380" x="45" y="110" as="geometry" />
+        </mxCell>
+        <mxCell id="problem" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8E6D5;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=21;spacing=15;arcSize=10;fontStyle=1;" value="FIELD NEED" vertex="1">
+          <mxGeometry height="60" width="430" x="50" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="response" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E0E8D4;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=21;spacing=15;arcSize=10;fontStyle=1;" value="KHOJSETU RESPONSE" vertex="1">
+          <mxGeometry height="60" width="430" x="535" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="impact" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F0E2CF;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=21;spacing=15;arcSize=10;fontStyle=1;" value="PROPOSED VALUE" vertex="1">
+          <mxGeometry height="60" width="430" x="1020" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="cell00" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Connectivity can be intermittent" vertex="1">
+          <mxGeometry height="80" width="430" x="50" y="275" as="geometry" />
+        </mxCell>
+        <mxCell id="cell01" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Local model + Qdrant Edge" vertex="1">
+          <mxGeometry height="80" width="430" x="535" y="275" as="geometry" />
+        </mxCell>
+        <mxCell id="cell02" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Continue recording and searching" vertex="1">
+          <mxGeometry height="80" width="430" x="1020" y="275" as="geometry" />
+        </mxCell>
+        <mxCell id="cell10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Related finds use different words" vertex="1">
+          <mxGeometry height="80" width="430" x="50" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="cell11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Semantic retrieval + layer filters" vertex="1">
+          <mxGeometry height="80" width="430" x="535" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="cell12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Locate relevant observations sooner" vertex="1">
+          <mxGeometry height="80" width="430" x="1020" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="cell20" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Some records need restricted sharing" vertex="1">
+          <mxGeometry height="80" width="430" x="50" y="485" as="geometry" />
+        </mxCell>
+        <mxCell id="cell21" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Approval and privacy policy" vertex="1">
+          <mxGeometry height="80" width="430" x="535" y="485" as="geometry" />
+        </mxCell>
+        <mxCell id="cell22" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Control what leaves the field unit" vertex="1">
+          <mxGeometry height="80" width="430" x="1020" y="485" as="geometry" />
+        </mxCell>
+        <mxCell id="cell30" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Team interpretations change" vertex="1">
+          <mxGeometry height="80" width="430" x="50" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="cell31" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Version checks + conflict review" vertex="1">
+          <mxGeometry height="80" width="430" x="535" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="cell32" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FAF8F0;strokeColor=#C8CDB8;fontColor=#34412E;fontFamily=Helvetica;fontSize=19;spacing=15;arcSize=10;" value="Preserve competing observations" vertex="1">
+          <mxGeometry height="80" width="430" x="1020" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="business" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#34412E;fontFamily=Helvetica;fontSize=18;spacing=15;arcSize=10;align=left;verticalAlign=middle;fontColor=#34412E;" value="Potential buyers: excavation programmes, research institutions and archaeological consultancies." vertex="1">
+          <mxGeometry height="45" width="1400" x="45" y="718" as="geometry" />
+        </mxCell>
+        <mxCell id="validation" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontColor=#34412E;fontFamily=Helvetica;fontSize=17;spacing=15;arcSize=10;align=left;verticalAlign=middle;fontColor=#34412E;" value="Next step: practitioner pilot. Measure retrieval time, offline task success and exchange integrity. No adoption or ROI claims yet." vertex="1">
+          <mxGeometry height="50" width="1400" x="45" y="769" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
