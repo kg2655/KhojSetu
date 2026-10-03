@@ -10,14 +10,12 @@ A researcher records a find, searches related observations on the field laptop w
 
 *Conceptual workflow animation; not a recording of live database activity.*
 
-## Submission materials
+## Documentation & Demo
 
 - [Editable draw.io architecture](public/khojsetu-flow.drawio) — open in diagrams.net or draw.io Desktop; all nodes and connectors are editable.
-- [Interactive pitch HTML](public/pitch.html) — download/open locally, or visit `/pitch.html` while running the app. GitHub's file view does not execute HTML.
+- [Interactive workflow explainer](public/pitch.html) — download/open locally, or visit `/pitch.html` while running the app. GitHub's file view does not execute HTML.
 - [Five-minute demonstration](DEMO.md)
-- [Pitch background, dataset explanation and judge Q&A](PITCH-PREP.md)
-- [Beginner setup, Docker explanation and manual commands](START-HERE.md)
-- [GitHub submission and cleanup guide](SUBMISSION.md)
+- [Setup & Running Locally](START-HERE.md)
 
 ## Why this challenge, and why archaeology?
 
