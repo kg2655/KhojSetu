@@ -12,7 +12,6 @@ A researcher records a find, searches related observations on the field laptop w
 
 ## Documentation & Demo
 
-- [Editable draw.io architecture](public/khojsetu-flow.drawio) — open in diagrams.net or draw.io Desktop; all nodes and connectors are editable.
 - [Interactive workflow explainer](public/pitch.html) — download/open locally, or visit `/pitch.html` while running the app. GitHub's file view does not execute HTML.
 - [Five-minute demonstration](DEMO.md)
 - [Setup & Running Locally](START-HERE.md)
@@ -129,7 +128,7 @@ Start the gateway and Qdrant Server before the integration suite. Those tests cr
 - `backend/app.py`: local API; `vectors.py`: Edge and embeddings; `store.py`: records and exchange; `models.py`: policy.
 - `backend/cloud.py`: shared gateway using Qdrant Server.
 - `compose.yaml`: local Qdrant Server container.
-- `public/`: editable diagram and standalone pitch.
+- `public/`: static assets and standalone workflow explainer.
 - `docs/media/`: README animation.
 - Original prototype UI files remain available for reference but are not the active entry point. Its historical README is archived under `docs/archive/`.
 
