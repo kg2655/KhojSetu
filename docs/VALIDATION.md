@@ -28,10 +28,11 @@ The original five checks remain in backend/test_integration.py. To run those sep
 
 ## Verified on 7 October 2026
 
-- 25 checks passed across the original and final-round suites.
+- 24 final-round checks passed in the latest full run; the original five integration checks passed earlier (29 checks total).
 - Selective-download tests cover out-of-scope revisions, safe widening/narrowing, blocking selection changes during in-flight exchange, and not disclosing never-shared private IDs.
 - Reference-cache tests verify own/pinned/edited-record protection, removal from real Edge search, exclusion from later downloads, explicit restoration and interrupted-removal recovery.
 - Withdrawal tests verify active Qdrant removal, suppression of withdrawn history in change responses, preservation of local edits, stale-revision conflicts and idempotent retry after a lost acknowledgement.
+- Republish recovery tests verify restoration across withdrawal history and device restart, plus receipt reconciliation after a lost republish acknowledgement without duplicate uploads.
 - TypeScript checking and production build passed.
 - Browser upload: a labelled 800 × 600 test image was compressed from about 13 KiB to 9 KiB, saved, and displayed in the record and archive. It was not presented as archaeological evidence.
 - Real-server photo roundtrip completed across multiple 64 KiB cycles with matching file hashes.
