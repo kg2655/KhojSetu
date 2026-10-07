@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { Compass, Search, Plus, ArrowUpRight, ArrowLeftRight, BookOpen, Layers, MapPin,
   X, Check, ShieldCheck, WifiOff, Activity, Database, ChevronRight, LoaderCircle } from 'lucide-react';
 import { ArtifactIllustration } from './components/records/ArtifactIllustration';
@@ -34,6 +34,9 @@ const label = (v:string) => v.toLowerCase().replaceAll('_',' ');
 
 export default function App(){
   const [state,setState]=useState<State|null>(null);
+  const [serviceReady,setServiceReady]=useState(false);
+  const [lastSeen,setLastSeen]=useState<number|null>(null);
+  const refreshRequest=useRef<Promise<State>|null>(null);
   const [page,setPage]=useState<Page>('station');
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
@@ -52,8 +55,22 @@ export default function App(){
   const [archiveQuery,setArchiveQuery]=useState('');
   const [metered,setMetered]=useState(false);
   const [exchange,setExchange]=useState<ExchangeResult|null>(null);
-  const refresh=useCallback(async()=>{const s=await api<State>('/state');setState(s);return s;},[]);
-  useEffect(()=>{refresh().catch(e=>setError(e.message));const timer=window.setInterval(()=>{refresh().catch(()=>{});},5000);return()=>window.clearInterval(timer);},[refresh]);
+  const refresh=useCallback(()=>{
+    if(refreshRequest.current)return refreshRequest.current;
+    refreshRequest.current=(async()=>{
+      const controller=new AbortController();
+      const timeout=window.setTimeout(()=>controller.abort(),8000);
+      try{
+        const response=await fetch('/api/state',{signal:controller.signal});
+        if(!response.ok)throw new Error('Local field service is unavailable.');
+        const s:State=await response.json();
+        setState(s);setServiceReady(true);setLastSeen(Date.now());return s;
+      }catch{setServiceReady(false);throw new Error('Cannot reach the local field service. Start KhojSetu, then retry.');}
+      finally{window.clearTimeout(timeout);refreshRequest.current=null;}
+    })();
+    return refreshRequest.current;
+  },[]);
+  useEffect(()=>{refresh().catch(()=>{});const timer=window.setInterval(()=>{refresh().catch(()=>{});},5000);return()=>window.clearInterval(timer);},[refresh]);
   useEffect(()=>{if(state)setMetered(state.metered);},[state?.metered]);
   useEffect(()=>{const close=(e:KeyboardEvent)=>{if(e.key==='Escape')setSelected(null);};
     window.addEventListener('keydown',close);return()=>window.removeEventListener('keydown',close);},[]);
@@ -85,16 +102,18 @@ export default function App(){
     </aside>
     <div className="workspace">
       <header className="top"><span className="crumb">EXPEDITION WORKSPACE <ChevronRight size={13}/><strong>{pages.find(p=>p.id===page)?.label}</strong></span>
-        <button className={'connection '+(state?.fieldMode?'offline':'')} disabled={busy||!state} onClick={()=>action(async()=>{setState(await api<State>('/settings',{fieldMode:!state?.fieldMode}));})}>
+        <button className={'connection '+(state?.fieldMode?'offline':'')} disabled={busy||!state||!serviceReady} onClick={()=>action(async()=>{setState(await api<State>('/settings',{fieldMode:!state?.fieldMode}));})}>
           {state?.fieldMode?<WifiOff size={14}/>:<ArrowLeftRight size={14}/>} {state?.fieldMode?'Field mode · exchange paused':'Exchange enabled'}</button>
       </header>
       <main>
+        {!serviceReady&&state&&<div role="alert" className="service-warning"><strong>Local service disconnected</strong><p>Showing the last loaded records{lastSeen?' from '+new Date(lastSeen).toLocaleTimeString():''}. New changes cannot be confirmed until the service returns. This is different from field mode, which only pauses exchange.</p><button className="secondary" disabled={busy} onClick={()=>action(async()=>{await refresh();})}>Retry connection</button></div>}
         {error&&<div role="alert" className="message error">{error}<button onClick={()=>setError('')} aria-label="Dismiss error"><X size={16}/></button></div>}
         {notice&&<div role="status" className="message success">{notice}</div>}
-        {!state?<div className="empty"><Compass size={44}/><h1>Opening your field memory</h1><p>The local field service must be running on this device.</p><button className="primary" onClick={()=>action(async()=>{await refresh();})}>Retry connection</button></div>:<>
+        {!state?<div className="empty"><Compass size={44}/><h1>Opening your field memory</h1><p>Start KhojSetu on this device and keep it running. Docker is only needed for shared exchange. The connection retries automatically.</p><button className="primary" onClick={()=>action(async()=>{await refresh();})}>Retry connection</button></div>:<>
           {page==='station'&&<>
             <div className="page-heading"><div><span className="eyebrow">THE FIELD NOTEBOOK / 01</span><h1>Every discovery has a story.</h1><p>Keep the context. Find the connections. Carry your knowledge into the field.</p></div><button className="primary" onClick={()=>navigate('record')}><Plus size={17}/> Record a finding</button></div>
-            <div className="station-meta"><span><i className="dot"/> LOCAL MEMORY READY</span><span>{fieldRecords.length} field records · {records.length-fieldRecords.length} references</span><span>{state.pending} awaiting exchange</span><span>{local} kept local</span></div>
+            <div className="station-meta"><span><i className="dot"/> {serviceReady?'LOCAL MEMORY READY':'LAST LOADED MEMORY'}</span><span>{fieldRecords.length} field records · {records.length-fieldRecords.length} references</span><span>{state.pending} awaiting exchange</span><span>{local} kept local</span></div>
+            <section className="field-steps" aria-label="Field workflow"><button onClick={()=>navigate('record')}><span>01 / CAPTURE</span><strong>Record an observation</strong><small>Add notes and an optional photograph.</small></button><button onClick={()=>navigate('search')}><span>02 / RETRIEVE</span><strong>Search local knowledge</strong><small>Find related notes by meaning and keywords.</small></button><button onClick={()=>navigate('exchange')}><span>03 / EXCHANGE</span><strong>Share approved knowledge</strong><small>Review privacy and send when connected.</small></button></section>
             {!records.length&&<div className="seed"><div><strong>A fresh field notebook.</strong><p>Start a real record, or load the clearly marked synthetic excavation dataset to explore the workflow.</p></div><button className="secondary" disabled={busy} onClick={()=>action(async()=>{setState(await api<State>('/seed',{}));setNotice('Synthetic field records indexed in Qdrant Edge.');})}>{busy?'Indexing records…':'Load demo expedition'}</button></div>}
             <div className="station-layout"><section className="sheet map-sheet"><div className="sheet-head"><div><span className="eyebrow">SPATIAL MEMORY</span><h2>The excavation grid</h2></div><span className="north">N ↑</span></div>
               <div className="layer-tabs" aria-label="Excavation layer">{['L1','L2','L3','L4','L5'].map(l=><button key={l} className={layer===l?'selected':''} onClick={()=>setLayer(l)}>{l}<span>{fieldRecords.filter(r=>r.layer===l).length}</span></button>)}</div>

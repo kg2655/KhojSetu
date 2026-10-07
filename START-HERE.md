@@ -111,12 +111,23 @@ Internet is needed for that initial installation and model download. Afterwards 
 
 ## Known boundaries
 
-- Real local text embeddings, Edge retrieval, Server writes and bidirectional record exchange are implemented. Photos are local-only and are not embedded or synchronized.
-- Exchange is explicitly triggered by the researcher; there is no automatic reconnect loop yet.
-- Limited-link mode prioritizes uploads; downloaded shared changes are not bandwidth capped.
-- Privacy flags describe current exchange eligibility. Making a record local later does not retract old shared versions.
-- The shared gateway must run as one worker. Multi-tenant authentication, deletion propagation, immutable audit retention and distributed gateway scaling need additional work before production use.
-- Synthetic archaeology is illustrative, not research evidence. The app does not infer dates or cultural attribution.
+- Local text embeddings and hybrid retrieval run on the device. Photos are compressed attachments, with explicit sharing approval and resumable synchronization; image embeddings are not implemented.
+- Exchange can be manual or opt-in automatic. Field mode pauses new exchange requests; an in-flight request may finish.
+- Metadata and photo transfer work is bounded per cycle. Repeated cycles accumulate traffic; counters exclude protocol overhead and small control responses.
+- Making a record local does not automatically retract earlier copies. Use explicit withdrawal; audit history and exported copies are not securely erased.
+- Storage admission budgets exclude model/dependency storage and RAM. They are not hard filesystem quotas.
+- The gateway is single-worker, single-team. Production multi-team authorization and distributed scaling are deferred.
+- Synthetic observations are demonstration data. Sourced museum reference packs are separate background knowledge, not field discoveries or expert validation.
+
+## Check before the demonstration
+
+```powershell
+.\Check-KhojSetu.ps1 -WithExchange -SecondUnit
+```
+
+This read-only check reports the local app, second unit and shared gateway, plus build/model availability. Omit `-SecondUnit` for one unit and `-WithExchange` for local-only work. It does not seed, synchronize, delete or modify records. Missing services produce a nonzero exit code and suggested startup commands. Camera permission, actual offline search and end-to-end exchange still require a manual rehearsal.
+
+Two local units on one laptop are not two physical devices. For two laptops, install the project/model on each, give each a distinct `KHOJ_DEVICE` and separate `KHOJ_DATA`, and point `KHOJ_SYNC_URL` at the same reachable gateway. Keep each field app on localhost for camera access. The shared gateway requires a secured HTTPS endpoint and matching `KHOJ_SYNC_TOKEN`; the default launcher exposes nothing to the LAN. Do not open the field API or raw Qdrant port to the public network. Until the endpoint is configured and rehearsed, use the two-local-unit demonstration above.
 
 ## Checks
 

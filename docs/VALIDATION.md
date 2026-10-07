@@ -60,3 +60,9 @@ Six reference-pack tests passed after adding the eight-record catalogue snapshot
 ## Final presentation assets
 
 Production build passed. Both editable draw.io pages and SVG parsed successfully; GIF has 28 frames. Archived source assets were checked against previous versions (HTML checkout line endings preserved). Browser checks verified initial rendering, Next navigation and direct Reconcile selection at /pitch.html. These are presentation checks; backend tests were not rerun for this documentation-only change.
+
+## Finale usability checkpoint - 8 October 2026
+
+Added Capture / Retrieve / Exchange entry points on the field station. State refresh requests have an eight-second timeout and share an in-flight request. A disconnected local backend now produces a persistent stale-record warning and disables the exchange-mode toggle; successful polling restores the ready state. Field mode remains distinct from backend unavailability.
+
+Type checking and production build passed. Browser checks verified the search shortcut and visual layout. An isolated read-only preview verified service failure (HTTP 503), warning visibility, disabled toggle and automatic recovery; the normal 40-record field dataset was not changed. Check-KhojSetu.ps1 passed against the real field app/gateway, and correctly returned exit code 1 for an unavailable gateway. The script performs no synchronization or data writes. Camera capture and physical two-laptop exchange remain manual preflight items.
