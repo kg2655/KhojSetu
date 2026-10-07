@@ -34,6 +34,7 @@ Potential users include excavation teams, research programmes and archaeological
 | Hybrid retrieval | Dense cosine and lexical sparse search in Edge; application combines rankings using reciprocal-rank fusion |
 | Context filtering | Layer and material filters |
 | Field photographs | Camera or upload; metadata-stripped JPEG working copies, displayed in records and search results |
+| Selective downloads | Choose a site/material for new findings; existing local records keep receiving revisions |
 | Device storage | Configurable admission budget, usage breakdown, protected attached evidence and unused-photo cleanup |
 | Persistent field records | SQLite journal, local versions and durable pending state |
 | Selective exchange | Sensitivity, researcher approval, visibility and priority rules; limited-link upload prioritization |
@@ -106,7 +107,7 @@ Closing browser tabs does not stop the backend. Stopping services does not erase
 
 ## Validation
 
-The updated implementation has passed TypeScript checking, a production frontend build and 16 regression checks using real Qdrant Edge; gateway checks use a disposable real Qdrant Server. Coverage includes the original filter/privacy/conflict/restart cases plus stalled uploads, lost acknowledgements, revoked sharing, storage admission, photo compression, chunk retries, integrity checks, authentication and interrupted gateway writes. Browser verification covered photo upload and saving; physical webcam capture remains a device-specific preflight check.
+The updated implementation has passed TypeScript checking, a production frontend build and 19 regression checks using real Qdrant Edge; gateway checks use a disposable real Qdrant Server. Coverage includes the original filter/privacy/conflict/restart cases plus stalled uploads, lost acknowledgements, revoked sharing, storage admission, photo compression, chunk retries, integrity checks, authentication and interrupted gateway writes. Browser verification covered photo upload and saving; physical webcam capture remains a device-specific preflight check.
 
 See [verification instructions](docs/VALIDATION.md) for isolated test setup. Test data must not be mixed with the expedition used for presentation.
 
@@ -120,7 +121,7 @@ The new suite expects a disposable Qdrant Server on port 6334; it creates and re
 
 ## Resource-aware operation
 
-Under **System & activity**, set the field-data budget (default **512 MiB**) and each direction's transfer allowance (default **256 KiB per cycle**). The model cache is shown separately. Local recording and search continue while network requests are pending. Background exchange is opt-in and remains paused in field mode.
+Under **System & activity**, set the field-data budget (default **512 MiB**) and each direction's transfer allowance (default **256 KiB per cycle**). The model cache is shown separately. Choose an exact site name and/or material to limit new downloads; leave both blank for all approved shared findings. Local recording and search continue while network requests are pending. Background exchange is opt-in and remains paused in field mode.
 
 Each cycle attempts at most 20 record uploads and receives at most 20 changes. Photographs use resumable chunks of at most 64 KiB. Transfer counters cover application change bodies and photo chunks, not HTTP/TLS overhead, health checks or acknowledgements. These are per-cycle limits, not daily data caps.
 
@@ -137,7 +138,7 @@ Cleanup only removes unattached files older than 24 hours. It never automaticall
 ## Scope and remaining work
 
 - Automatic exchange polls with bounded retries; it is not an operating-system connectivity event subscription.
-- Shared changes are downloaded incrementally within budgets. Expedition-specific reference packs and eviction of downloaded records are not implemented.
+- Shared changes can be filtered by site/material within transfer budgets. Existing local records remain subscribed to updates. Selection changes replay history without deleting local evidence. Curated reference-pack import and eviction of downloaded records remain unimplemented.
 - The assistant is extractive, not a generative archaeological expert. Similarity scores are not confidence in historical facts.
 - Image similarity search and full-resolution original-photo backup are not implemented.
 - The current deployment is single-team localhost with one gateway worker. Optional bearer-token authentication is supported; remote hosting also requires HTTPS. Multi-team authorization and distributed scaling require further work.

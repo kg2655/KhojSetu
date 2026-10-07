@@ -157,6 +157,51 @@ def changes(after: int = Query(0,ge=0), limit: int = Query(100,ge=1,le=100),
         return Response(encoded(page), media_type="application/json")
 
 
+
+class ChangeSelection(BaseModel):
+    after: int = Field(default=0, ge=0)
+    limit: int = Field(default=20, ge=1, le=100)
+    max_bytes: int = Field(default=256*1024, ge=1024, le=8*1024*1024)
+    site: str = Field(default="", max_length=120)
+    material: str = Field(default="", max_length=50)
+    known_ids: list[str] = Field(default_factory=list, max_length=5000)
+
+
+@app.post("/changes/query", dependencies=[Depends(authorize)])
+def selected_changes(selection: ChangeSelection):
+    """Filter new downloads, but always maintain revisions of records already held locally."""
+    with lock:
+        repair_pending()
+        rows = db.execute("SELECT seq,revision,body,vectors FROM changes WHERE seq>? ORDER BY seq LIMIT 1001",
+                          (selection.after,)).fetchall()
+        known = set(selection.known_ids)
+        page = {"changes":[],"cursor":selection.after,"hasMore":False,"skipped":0}
+        for row in rows[:1000]:
+            if len(page["changes"]) >= selection.limit:
+                page["hasMore"] = True
+                break
+            record = json.loads(row[2])
+            matches = ((not selection.site or record.get("site","").casefold()==selection.site.casefold()) and
+                       (not selection.material or record.get("material","").casefold()==selection.material.casefold()))
+            if record["id"] not in known and not matches:
+                page["cursor"] = row[0]
+                page["skipped"] += 1
+                continue
+            change = {"seq":row[0],"revision":row[1],"record":record,"vectors":json.loads(row[3])}
+            candidate = {**page,"changes":page["changes"]+[change],"cursor":row[0],"hasMore":True}
+            size = len(encoded(candidate))
+            if size + 128 > selection.max_bytes:
+                page["hasMore"] = True
+                if not page["changes"]:
+                    page["requiredBytes"] = size + 128
+                break
+            page = candidate
+            known.add(record["id"])
+        else:
+            page["hasMore"] = len(rows)>1000
+        return Response(encoded(page),media_type="application/json")
+
+
 def shared_photo_size(digest):
     try:
         photo_path(photo_dir,digest)

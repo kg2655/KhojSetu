@@ -37,7 +37,11 @@ The gateway commits pending changes to its SQLite journal before writing Qdrant.
 
 ## Small local datasets
 
-The 40-record synthetic expedition is intentional. The design is suitable for demonstrating a useful local working collection, not claiming millions of offline observations on every device. The current release downloads the approved shared change stream in bounded pages. Selective expedition packs and removable reference caches remain planned extensions.
+The 40-record synthetic expedition is intentional. The design is suitable for demonstrating a useful local working collection, not claiming millions of offline observations on every device. Under System & activity, select an exact site name and/or material for new downloads. Matching is case-insensitive. The gateway filters before sending vector/record data, while always delivering updates to previously shared records already on the device. A finding that matched an earlier revision remains tracked if later reclassified. Changing the selection safely resets the download cursor and replays history; existing revisions are skipped and local evidence is never removed.
+
+Selection requests exclude never-shared private record IDs. Up to 5,000 known shared IDs are supported per filtered request; this is a bounded small-device design, not a large-catalog subscription service. The gateway examines at most 1,000 change events per selected page and returns a cursor to resume. Subscription metadata is control traffic outside the content-byte counter.
+
+Curated reference-pack import and removable reference caches remain planned extensions.
 
 ## Boundaries
 

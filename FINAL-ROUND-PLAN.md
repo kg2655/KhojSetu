@@ -8,6 +8,7 @@ Updated 7 October 2026. Presentation: 11 October.
 - Bounded metadata uploads/downloads and visible per-cycle body-byte counters.
 - Camera/upload controls, compressed working photos, EXIF removal and content-based deduplication.
 - Explicit photo-sharing approval and resumable, checksum-verified attachment transfers.
+- Selective site/material downloads with safe history replay and updates for already-held records.
 - Device storage accounting, admission budgets and protected-evidence cleanup.
 - Leaner Edge payloads; no re-embedding for policy-only edits; no dense embedding for lexical-only queries.
 - Recoverable gateway writes and isolated regression tests.
@@ -21,7 +22,7 @@ Updated 7 October 2026. Presentation: 11 October.
 - Freeze features on 10 October.
 
 ## Explicitly deferred
-- Expedition-specific reference packs and eviction of downloaded records.
+- Curated reference-pack import and eviction of downloaded records.
 - Shared deletion/tombstone propagation.
 - Image embeddings and generative archaeological answers.
 - Native phone deployment and secure phone-to-laptop deployment.

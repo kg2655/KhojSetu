@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 type Storage = {dataBytes:number;photoBytes:number;indexBytes:number;otherBytes:number;budgetBytes:number;modelBytes:number;freeDiskBytes:number;recordCount:number;protectedPhotos:number};
-type Settings = {autoSync:boolean;metered:boolean;transferKiB:number};
+type Settings = {autoSync:boolean;metered:boolean;transferKiB:number;downloadSite:string;downloadMaterial:string};
 const size=(n:number)=>n<1024*1024?(n/1024).toFixed(1)+' KiB':(n/1024/1024).toFixed(1)+' MiB';
 export function DeviceControls({settings,onSaved}:{settings:Settings;onSaved:()=>Promise<unknown>}){
   const [storage,setStorage]=useState<Storage|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -20,8 +20,10 @@ export function DeviceControls({settings,onSaved}:{settings:Settings;onSaved:()=
     <progress max={100} value={percent} aria-label="Device field-data storage usage"/>
     <div className="storage-breakdown"><span>Photos <b>{size(storage.photoBytes)}</b></span><span>Edge index <b>{size(storage.indexBytes)}</b></span><span>Journal & other <b>{size(storage.otherBytes)}</b></span><span>Shared model cache <b>{size(storage.modelBytes)}</b></span></div>
     <p className="storage-explanation">Model cache is a fixed cost outside the field-data budget. {size(storage.freeDiskBytes)} disk space is free. Admission checks reserve space; this is not an operating-system disk quota.</p>
-    <form onSubmit={e=>{e.preventDefault();const d=new FormData(e.currentTarget);void submit({storageMiB:Number(d.get('storageMiB')),transferKiB:Number(d.get('transferKiB')),autoSync:d.get('autoSync')==='on',metered:d.get('metered')==='on'});}}>
+    <form onSubmit={e=>{e.preventDefault();const d=new FormData(e.currentTarget);void submit({downloadSite:String(d.get('downloadSite')||'').trim(),downloadMaterial:String(d.get('downloadMaterial')||''),storageMiB:Number(d.get('storageMiB')),transferKiB:Number(d.get('transferKiB')),autoSync:d.get('autoSync')==='on',metered:d.get('metered')==='on'});}}>
       <div className="form-grid"><label>Field-data budget (MiB)<input name="storageMiB" type="number" min={192} max={4096} defaultValue={storage.budgetBytes/1024/1024} required/></label><label>Each direction per cycle (KiB)<input name="transferKiB" type="number" min={64} max={8192} defaultValue={settings.transferKiB} required/></label></div>
+      <div className="form-grid"><label>Download new findings from site<input name="downloadSite" maxLength={120} defaultValue={settings.downloadSite} placeholder="All sites (leave blank)"/></label><label>Download new findings by material<select name="downloadMaterial" defaultValue={settings.downloadMaterial}><option value="">All materials</option>{['Ceramic','Stone','Metal','Bone','Organic','Glass','Other'].map(m=><option key={m}>{m}</option>)}</select></label></div>
+      <p className="storage-explanation">Carry the knowledge relevant to your expedition. Site names match exactly, ignoring case. Existing local records still receive updates even if their material or site changes. Changing this selection rechecks shared history; it never deletes local evidence. An empty match can mean there are no approved findings for that site yet.</p>
       <label className="checkline"><input name="autoSync" type="checkbox" defaultChecked={settings.autoSync}/> Automatically exchange when field mode is off. Retries back off when unavailable.</label>
       <label className="checkline"><input name="metered" type="checkbox" defaultChecked={settings.metered}/> Limited link: prioritize high-importance uploads and photos.</label>
       <small>At most 20 record uploads and 20 downloaded changes per cycle. Transfer limits count change bodies and photo chunks, not HTTP/TLS overhead or acknowledgements. Automatic cycles normally run about every 30 seconds.</small>

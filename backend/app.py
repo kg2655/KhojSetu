@@ -54,6 +54,8 @@ def state():
                 'metered': s.setting('metered','false') == 'true',
                 'transferKiB': int(s.setting('transferKiB','256')),
                 'nextSync': s.setting('nextSync'),
+                'downloadSite': s.setting('downloadSite',''),
+                'downloadMaterial': s.setting('downloadMaterial',''),
                 'lastExchange': json.loads(s.setting('lastExchange','null'))}
 
 
@@ -97,15 +99,20 @@ class Settings(BaseModel):
     autoSync: bool | None = None
     metered: bool | None = None
     transferKiB: int | None = Field(default=None, ge=64, le=8192)
+    downloadSite: str | None = Field(default=None, max_length=120)
+    downloadMaterial: Literal['','Ceramic','Stone','Metal','Bone','Organic','Glass','Other'] | None = None
     storageMiB: int | None = Field(default=None, ge=192, le=4096)
 
 
 @app.post('/api/settings')
 def settings(data: Settings):
-    with store().lock:
-        for key, value in data.model_dump(exclude_none=True).items():
-            store().set_setting(key, str(value).lower() if isinstance(value, bool) else value)
-        store().log('Device settings updated', 'Storage and exchange preferences saved.')
+    try:
+        values = data.model_dump(exclude_none=True)
+        if "downloadSite" in values:
+            values["downloadSite"] = values["downloadSite"].strip()
+        store().configure(values)
+    except ValueError as exc:
+        raise HTTPException(409,str(exc))
     return state()
 
 

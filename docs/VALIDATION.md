@@ -28,7 +28,8 @@ The original five checks remain in backend/test_integration.py. To run those sep
 
 ## Verified on 7 October 2026
 
-- 16 checks passed across the original and final-round suites.
+- 19 checks passed across the original and final-round suites.
+- Selective-download tests cover out-of-scope revisions, safe widening/narrowing, blocking selection changes during in-flight exchange, and not disclosing never-shared private IDs.
 - TypeScript checking and production build passed.
 - Browser upload: a labelled 800 × 600 test image was compressed from about 13 KiB to 9 KiB, saved, and displayed in the record and archive. It was not presented as archaeological evidence.
 - Real-server photo roundtrip completed across multiple 64 KiB cycles with matching file hashes.

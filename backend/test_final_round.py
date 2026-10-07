@@ -219,6 +219,11 @@ def test_field_api_photo_and_settings(tmp_path,monkeypatch):
         assert client.get("/api/state").json()["fieldMode"]
         assert client.post("/api/settings",json={"storageMiB":1}).status_code==422
         assert client.post("/api/settings",json={"transferKiB":64}).json()["transferKiB"]==64
+        selected=client.post("/api/settings",json={"downloadMaterial":"Stone","downloadSite":"  River Camp  "})
+        assert selected.status_code==200
+        assert selected.json()["downloadSite"]=="River Camp"
+        assert selected.json()["downloadMaterial"]=="Stone"
+        assert client.post("/api/settings",json={"downloadMaterial":"Unknown"}).status_code==422
         data=io.BytesIO();Image.new("RGB",(600,400),"brown").save(data,"PNG")
         response=client.post("/api/photos",content=data.getvalue(),headers={"Content-Type":"image/png"})
         assert response.status_code==200
@@ -265,3 +270,64 @@ def test_restart_clears_stale_activity_and_preserves_outbox(tmp_path):
         assert second.db.execute("SELECT COUNT(*) FROM outbox").fetchone()[0]==1
         assert second.get(r["id"])["dirty"]
     finally: second.close()
+
+def test_selected_gateway_history_and_existing_record_updates(unit,gateway,monkeypatch,tmp_path):
+    ceramic=unit.save(record(material="Ceramic",site="River Camp"))
+    stone=unit.save(record(material="Stone",site="River Camp"))
+    elsewhere=unit.save(record(material="Ceramic",site="Hill Camp"))
+    route_gateway(monkeypatch,gateway)
+    unit.sync("http://test","test-secret")
+    # A finding that once matched must arrive with its current revision, not stale classification.
+    unit.save({**record(material="Stone",site="River Camp"),"expectedVersion":1},ceramic["id"])
+    unit.sync("http://test","test-secret")
+    b=Store(tmp_path/"selected",VectorMemory(tmp_path/"selected/edge",ROOT/".models"),"SELECTED")
+    try:
+        b.configure({"fieldMode":False,"downloadSite":"river camp","downloadMaterial":"Ceramic"})
+        first=b.sync("http://test","test-secret")
+        assert first["downloaded"]==2
+        assert b.get(ceramic["id"])["material"]=="Stone"
+        assert b.get(stone["id"]) is None
+        assert b.get(elsewhere["id"]) is None
+        current=unit.get(ceramic["id"])
+        unit.save({**record(material="Metal",site="Hill Camp",fieldNotes="Reclassified following examination."),
+                   "expectedVersion":current["version"]},ceramic["id"])
+        unit.sync("http://test","test-secret")
+        b.sync("http://test","test-secret")
+        assert b.get(ceramic["id"])["material"]=="Metal"
+        assert b.get(ceramic["id"])["site"]=="Hill Camp"
+        b.configure({"downloadMaterial":"","downloadSite":""})
+        assert b.setting("cursor")=="0"
+        b.sync("http://test","test-secret")
+        assert b.get(stone["id"]) and b.get(elsewhere["id"])
+        assert len(b.records())==3
+        b.configure({"downloadMaterial":"Glass","downloadSite":"Unknown Site"})
+        b.sync("http://test","test-secret")
+        assert len(b.records())==3  # Narrowing a pack never silently deletes evidence.
+    finally: b.close()
+
+def test_selection_change_waits_for_exchange_and_does_not_reset_other_settings(unit):
+    unit.set_setting("cursor","91")
+    unit.sync_lock.acquire()
+    try:
+        with pytest.raises(ValueError):
+            unit.configure({"downloadMaterial":"Ceramic"})
+        assert unit.setting("cursor")=="91"
+        unit.configure({"fieldMode":True})  # Pausing remains available during an exchange.
+    finally: unit.sync_lock.release()
+    unit.configure({"transferKiB":64})
+    assert unit.setting("cursor")=="91"
+    unit.configure({"downloadMaterial":"Ceramic"})
+    assert unit.setting("cursor")=="0"
+
+def test_selection_does_not_disclose_unshared_private_ids(unit,monkeypatch):
+    private=unit.save(record(sensitive=True))
+    unit.configure({"downloadMaterial":"Ceramic"})
+    selections=[]
+    def handler(request):
+        if request.url.path=="/changes/query":
+            selections.append(json.loads(request.content))
+            return httpx.Response(200,json=empty_changes())
+        return httpx.Response(200,json={})
+    mock_client(monkeypatch,handler)
+    unit.sync("http://test")
+    assert private["id"] not in selections[0]["known_ids"]

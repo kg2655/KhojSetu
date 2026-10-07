@@ -108,15 +108,25 @@ class ExchangeMixin:
                 if not self._paused():
                     with self.lock:
                         cursor = int(self.setting("cursor", "0"))
+                        selection_site = self.setting("downloadSite","")
+                        selection_material = self.setting("downloadMaterial","")
+                        known_ids = [r["id"] for r in self.records() if r.get("baseRevision",0)>0]
                         # A full local budget pauses downloads, not local evidence deletion.
                         allow_download = self.storage()["dataBytes"] + budget < self.storage()["budgetBytes"]
                     if allow_download:
-                        response = client.get("/changes", params={"after":cursor, "limit":20, "max_bytes":budget})
+                        if selection_site or selection_material:
+                            if len(known_ids)>5000:
+                                raise ValueError("Filtered exchange supports up to 5,000 local records. Use all-material/all-site exchange.")
+                            response = client.post("/changes/query", json={"after":cursor,"limit":20,"max_bytes":budget,
+                                "site":selection_site,"material":selection_material,"known_ids":known_ids})
+                        else:
+                            response = client.get("/changes", params={"after":cursor, "limit":20, "max_bytes":budget})
                         response.raise_for_status()
                         if len(response.content) > budget:
                             raise ValueError("Gateway exceeded the requested download budget.")
                         result["downloadedBytes"] += len(response.content)
                         page = response.json()
+                        result["skippedBySelection"] = page.get("skipped",0)
                         with self.lock:
                             for change in page["changes"]:
                                 remote, revision = change["record"], change["revision"]

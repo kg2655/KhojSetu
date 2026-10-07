@@ -118,6 +118,25 @@ class Store(ExchangeMixin):
         return {'results': results, 'elapsedMs': round((time.perf_counter()-started)*1000, 1),
                 'engine': 'Qdrant Edge 0.8.0', 'mode': request.mode}
 
+    def configure(self, values):
+        selection_keys = {"downloadSite","downloadMaterial"}
+        owns_sync = False
+        try:
+            with self.lock:
+                selection_changed = any(k in values and values[k] != self.setting(k,"") for k in selection_keys)
+                if selection_changed:
+                    owns_sync = self.sync_lock.acquire(blocking=False)
+                    if not owns_sync:
+                        raise ValueError("Wait for the current exchange to finish before changing the download selection.")
+                    # Replay history under the new selection; existing revisions are skipped safely.
+                    self.set_setting("cursor",0)
+                for key, value in values.items():
+                    self.set_setting(key,str(value).lower() if isinstance(value,bool) else value)
+                self.log("Device settings updated","Download selection and resource preferences saved.")
+        finally:
+            if owns_sync:
+                self.sync_lock.release()
+
     def storage(self):
         photos = directory_bytes(self.photo_dir)
         edge = directory_bytes(self.directory / "edge")
