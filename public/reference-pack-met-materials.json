@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "id": "met-comparative-materials-2026-10-v1",
+  "title": "Museum references: ceramics, metalwork and stone beads",
+  "source": "The Metropolitan Museum of Art — selected catalogue metadata; checked 7 October 2026",
+  "sourceUrl": "https://metmuseum.github.io/",
+  "license": "Met Open Access catalogue data: CC0. This text-only pack includes no images or curatorial essays.",
+  "evidenceType": "REFERENCE",
+  "records": [
+    {
+      "id": "met-453159",
+      "title": "Vase — Indian bronze vessel",
+      "material": "Metal",
+      "tags": [
+        "bronze",
+        "vessel",
+        "India"
+      ],
+      "fieldNotes": "Museum-catalogued bronze vessel with pierced decoration.\nAccession number: 1982.65\nCatalogue date: 17th century\nCatalogue culture/geography/period: Made in India\nCatalogue medium: Bronze; cast with pierced decoration\nObject source: https://www.metmuseum.org/art/collection/search/453159\nChecked: 2026-10-07. Metadata transcribed from the official catalogue page; the API was unavailable. This is a museum reference, not a KhojSetu field discovery. Similarity is not evidence of common date or origin."
+    },
+    {
+      "id": "met-37725",
+      "title": "Chalice — Indian bronze cup",
+      "material": "Metal",
+      "tags": [
+        "bronze",
+        "chalice",
+        "India"
+      ],
+      "fieldNotes": "Museum-catalogued drinking vessel; the date and period are catalogue attributions.\nAccession number: 1986.501.11\nCatalogue date: 2nd–4th century\nCatalogue culture/geography/period: India; Kushan or early Gupta period\nCatalogue medium: Bronze\nObject source: https://www.metmuseum.org/art/collection/search/37725\nChecked: 2026-10-07. Metadata transcribed from the official catalogue page; the API was unavailable. This is a museum reference, not a KhojSetu field discovery. Similarity is not evidence of common date or origin."
+    },
+    {
+      "id": "met-548768",
+      "title": "String of beads — Egyptian carnelian",
+      "material": "Stone",
+      "tags": [
+        "beads",
+        "carnelian",
+        "Egypt"
+      ],
+      "fieldNotes": "Museum-catalogued string of stone beads.\nAccession number: 25.3.94\nCatalogue date: ca. 1473–1458 BCE\nCatalogue culture/geography/period: Egypt; New Kingdom, Dynasty 18\nCatalogue medium: Carnelian\nObject source: https://www.metmuseum.org/art/collection/search/548768\nChecked: 2026-10-07. Metadata transcribed from the official catalogue page; the API was unavailable. This is a museum reference, not a KhojSetu field discovery. Similarity is not evidence of common date or origin."
+    },
+    {
+      "id": "met-557494",
+      "title": "Drop beads — carnelian, beryl and steatite",
+      "material": "Stone",
+      "tags": [
+        "beads",
+        "beryl",
+        "steatite"
+      ],
+      "fieldNotes": "Museum-catalogued group of drop-shaped beads made from multiple stones.\nAccession number: 22.1.1286\nCatalogue date: ca. 1981–1295 B.C.\nCatalogue culture/geography/period: Egypt; Middle Kingdom–Early New Kingdom\nCatalogue medium: Carnelian, beryl, steatite\nObject source: https://www.metmuseum.org/art/collection/search/557494\nChecked: 2026-10-07. Metadata transcribed from the official catalogue page; the API was unavailable. This is a museum reference, not a KhojSetu field discovery. Similarity is not evidence of common date or origin."
+    },
+    {
+      "id": "met-247440",
+      "title": "Terracotta bowl — Etruscan",
+      "material": "Ceramic",
+      "tags": [
+        "bowl",
+        "terracotta",
+        "Etruscan"
+      ],
+      "fieldNotes": "Museum-catalogued ceramic bowl.\nAccession number: 06.1021.274\nCatalogue date: 4th–3rd century BCE\nCatalogue culture/geography/period: Etruscan\nCatalogue medium: Terracotta\nObject source: https://www.metmuseum.org/art/collection/search/247440\nChecked: 2026-10-07. Metadata transcribed from the official catalogue page; the API was unavailable. This is a museum reference, not a KhojSetu field discovery. Similarity is not evidence of common date or origin."
+    },
+    {
+      "id": "met-256617",
+      "title": "Terracotta bowl — Campanian black glaze",
+      "material": "Ceramic",
+      "tags": [
+        "bowl",
+        "black-glaze",
+        "Campanian"
+      ],
+      "fieldNotes": "Museum-catalogued bowl with a black-glazed ceramic surface.\nAccession number: X.21.38\nCatalogue date: 4th century BCE\nCatalogue culture/geography/period: Greek, South Italian, Campanian; Late Classical\nCatalogue medium: Terracotta; black-glaze\nObject source: https://www.metmuseum.org/art/collection/search/256617\nChecked: 2026-10-07. Metadata transcribed from the official catalogue page; the API was unavailable. This is a museum reference, not a KhojSetu field discovery. Similarity is not evidence of common date or origin."
+    },
+    {
+      "id": "met-257612",
+      "title": "Terracotta bowl — Roman Arretine ware",
+      "material": "Ceramic",
+      "tags": [
+        "bowl",
+        "Roman",
+        "Arretine"
+      ],
+      "fieldNotes": "Museum-catalogued example of Roman ceramic fineware.\nAccession number: 2002.283\nCatalogue date: ca. 10–50 CE\nCatalogue culture/geography/period: Roman; Early Imperial, Julio-Claudian\nCatalogue medium: Terracotta; Arretine ware\nObject source: https://www.metmuseum.org/art/collection/search/257612\nChecked: 2026-10-07. Metadata transcribed from the official catalogue page; the API was unavailable. This is a museum reference, not a KhojSetu field discovery. Similarity is not evidence of common date or origin."
+    },
+    {
+      "id": "met-250086",
+      "title": "Terracotta bowl — Roman red slip ware",
+      "material": "Ceramic",
+      "tags": [
+        "bowl",
+        "Roman",
+        "red-slip"
+      ],
+      "fieldNotes": "Museum-catalogued ceramic vessel with a red-slip surface.\nAccession number: 17.194.860\nCatalogue date: 2nd half of 1st century AD\nCatalogue culture/geography/period: Roman\nCatalogue medium: Terracotta; red slip ware\nObject source: https://www.metmuseum.org/art/collection/search/250086\nChecked: 2026-10-07. Metadata transcribed from the official catalogue page; the API was unavailable. This is a museum reference, not a KhojSetu field discovery. Similarity is not evidence of common date or origin."
+    }
+  ]
+}

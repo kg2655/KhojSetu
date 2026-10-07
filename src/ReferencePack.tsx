@@ -19,7 +19,7 @@ export function ReferencePack({onChanged}:{onChanged:()=>Promise<unknown>}){
     <p>Import up to 100 text references from a JSON file, at most 1 MiB. Every pack identifies its source, permission and whether it is synthetic. Imported notes stay local; no source website is contacted.</p>
     <p>Re-importing the same pack preserves existing entries and your edits. Use a new entry ID for a separate revision. Reference notes use R0/L1 as display placeholders, not excavation coordinates.</p>
     <label>Reference pack file<input type="file" accept=".json,application/json" disabled={busy} onChange={e=>{setFile(e.target.files?.[0]||null);setError('');setMessage('');}}/></label>
-    <div className="button-row"><button type="button" className="primary" disabled={busy||!file} onClick={upload}>{busy?'Importing references…':'Import local references'}</button><a className="text-button" href="/reference-pack-example.json" download>Download synthetic example</a></div>
+    <div className="button-row"><button type="button" className="primary" disabled={busy||!file} onClick={upload}>{busy?'Importing references…':'Import local references'}</button><a className="text-button" href="/reference-pack-example.json" download>Download synthetic example</a><a className="text-button" href="/reference-pack-met-materials.json" download>Download 8 museum references</a></div>
     {error&&<p className="photo-error" role="alert">{error}</p>}{message&&<p role="status">{message}</p>}
   </section>;
 }

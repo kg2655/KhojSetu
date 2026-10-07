@@ -52,3 +52,7 @@ The original five checks remain in backend/test_integration.py. To run those sep
 6. Disconnect or pause exchange and verify local search still works.
 7. Demonstrate conflicting edits on two field units.
 8. Keep a recorded backup demonstration and freeze the build before the presentation.
+
+## Sourced museum pack checkpoint
+
+Six reference-pack tests passed after adding the eight-record catalogue snapshot. The added test imports the file into isolated real Edge memory, checks three material-filtered retrieval queries and verifies duplicate-free re-import. These are smoke checks, not archaeological accuracy evaluation. Type checking and production build passed. The ordinary synthetic expedition was not modified.

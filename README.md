@@ -17,6 +17,7 @@ A researcher records a find, searches related observations on the field laptop w
 - [Setup & Running Locally](START-HERE.md)
 - [Architecture, resource budgets and tradeoffs](docs/ARCHITECTURE.md)
 - [Preparing small offline reference packs](docs/REFERENCE-PACKS.md)
+- [Eight sourced museum references and dataset boundaries](docs/DATASET-SOURCES.md)
 
 ## Why this challenge, and why archaeology?
 

@@ -79,3 +79,19 @@ def test_pack_api_bounds_and_local_only_import(unit,monkeypatch):
         assert "Imported reference; no excavation location" in evidence["answer"]
         assert "R0, L1" not in evidence["answer"]
     finally:client.close()
+
+
+def test_museum_pack_import_and_material_retrieval(unit):
+    from pathlib import Path
+    path=Path(__file__).resolve().parent.parent/"public/reference-pack-met-materials.json"
+    imported=parse_pack(path.read_bytes())
+    assert imported.evidenceType=="REFERENCE" and len(imported.records)==8
+    assert all("https://www.metmuseum.org/art/collection/search/" in r.fieldNotes for r in imported.records)
+    assert import_pack(unit,imported)["imported"]==8
+    for query,material,expected in (("Indian bronze chalice","Metal","met-37725"),
+                                     ("carnelian beryl steatite beads","Stone","met-557494"),
+                                     ("Roman red slip ware bowl","Ceramic","met-250086")):
+        results=unit.search(SearchInput(query=query,material=material,limit=3))["results"]
+        assert any(r["record"]["referenceSource"]["entryId"]==expected for r in results)
+    assert import_pack(unit,imported)["skipped"]==8
+    assert len(unit.records())==8
