@@ -165,9 +165,10 @@ def withdraw(req: Withdrawal):
 def visible_change(row):
     """Do not serve historical content of a record withdrawn from the active archive."""
     record=json.loads(row[2])
-    latest=db.execute("SELECT revision,body FROM changes WHERE id=? ORDER BY seq DESC LIMIT 1",(record["id"],)).fetchone()
-    if latest and json.loads(latest[1]).get("withdrawn"):
-        return {"seq":row[0],"revision":latest[0],"record":json.loads(latest[1]),"vectors":{}}
+    latest=db.execute("SELECT revision,body,vectors FROM changes WHERE id=? ORDER BY seq DESC LIMIT 1",(record["id"],)).fetchone()
+    if latest and (record.get("withdrawn") or json.loads(latest[1]).get("withdrawn")):
+        # Preserve pagination position, but do not replay a superseded withdrawal.
+        return {"seq":row[0],"revision":latest[0],"record":json.loads(latest[1]),"vectors":json.loads(latest[2])}
     return {"seq":row[0],"revision":row[1],"record":record,"vectors":json.loads(row[3])}
 
 

@@ -1,7 +1,9 @@
 # Resume checkpoint - 7 October 2026
 
 Repository: C:/Users/user/Documents/Qdrant Arch/KhojSetu
-Branch: final-round. Tested feature checkpoints are published after remote-version checks.
+Branch: final-round. Published checkpoint: 5fbe845 on origin/main. Only the owner is currently working on the repository; normal non-force pushes are authorized.
+
+Pending checkpoint: fix obsolete withdrawal replay after republishing and clear withdrawn status on recovered upload receipts. The regression reproduced the historical-withdrawal defect before the fix. Fifteen offline checks passed across two runs. Two new real-server republish tests still need Docker; do not claim those passed or publish this checkpoint until verified. Docker startup currently fails on userAnalyticsOtlpHttp.sock; manual Quit/reopen previously resolved it. Field-07 is running at localhost:8000 with 40 records, field mode enabled.
 
 Implemented: camera/upload interface, compressed working photos, explicit attachment approval, resumable checksum-verified photo exchange, nonblocking bounded synchronization, durable outbox and receipt reconciliation, opt-in automatic retry, storage accounting/admission budgets, protected-photo cleanup, leaner Edge payloads, embedding reuse and selective site/material downloads with safe history replay, plus protected local-reference removal/restoration and explicit shared withdrawal.
 

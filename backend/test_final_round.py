@@ -457,3 +457,104 @@ def test_gateway_withdrawal_lost_ack_is_idempotent(unit,gateway,monkeypatch):
     assert unit.get(r["id"])["sharedWithdrawn"]
     from . import cloud
     assert cloud.db.execute("SELECT COUNT(*) FROM changes").fetchone()[0]==2
+
+
+def test_gateway_republished_reference_survives_history_replay_and_restart(unit,gateway,monkeypatch,tmp_path):
+    r=unit.save(record())
+    route_gateway(monkeypatch,gateway)
+    unit.sync("http://test","test-secret")
+    folder=tmp_path/"republished-reader"
+    reader=Store(folder,VectorMemory(folder/"edge",ROOT/".models"),"READER")
+    try:
+        reader.set_setting("fieldMode","false")
+        reader.sync("http://test","test-secret")
+        unit.request_withdrawal(r["id"],unit.get(r["id"])["version"])
+        unit.sync("http://test","test-secret")
+        reader.sync("http://test","test-secret")
+        assert reader.get(r["id"]) is None
+        current=unit.get(r["id"])
+        unit.save({**record(fieldNotes="Verified replacement observation."),"expectedVersion":current["version"]},r["id"])
+        unit.sync("http://test","test-secret")
+        reader.restore_reference(r["id"])
+        reader.sync("http://test","test-secret")
+        assert reader.get(r["id"])["baseRevision"]==3
+        assert not reader.cache_catalogue()["removed"]
+    finally:
+        reader.close()
+    reopened=Store(folder,VectorMemory(folder/"edge",ROOT/".models"),"READER")
+    try:
+        assert reopened.get(r["id"])["fieldNotes"]=="Verified replacement observation."
+        assert reopened.search(SearchInput(query="replacement observation"))["results"]
+    finally:
+        reopened.close()
+
+
+def test_gateway_republish_receipt_clears_withdrawn_status(unit,gateway,monkeypatch):
+    r=unit.save(record())
+    route_gateway(monkeypatch,gateway)
+    unit.sync("http://test","test-secret")
+    unit.request_withdrawal(r["id"],unit.get(r["id"])["version"])
+    unit.sync("http://test","test-secret")
+    current=unit.get(r["id"])
+    unit.save({**record(),"expectedVersion":current["version"]},r["id"])
+    lost=[False]
+    def handler(request):
+        response=gateway.request(request.method,str(request.url).replace("http://test",""),
+                                 content=request.content,headers=dict(request.headers))
+        if request.url.path=="/exchange" and not lost[0]:
+            lost[0]=True
+            raise httpx.ReadError("Republish acknowledgement lost")
+        return response
+    mock_client(monkeypatch,handler)
+    with pytest.raises(ConnectionError): unit.sync("http://test","test-secret")
+    unit.sync("http://test","test-secret")
+    current=unit.get(r["id"])
+    assert current["syncStatus"]=="SYNCED"
+    assert not current["sharedWithdrawn"]
+    assert current["baseRevision"]==3
+
+
+def test_republished_history_does_not_replay_obsolete_withdrawal(monkeypatch):
+    import sqlite3
+    from . import cloud
+    db=sqlite3.connect(":memory:")
+    db.execute("CREATE TABLE changes(seq INTEGER, revision INTEGER, id TEXT, body TEXT, vectors TEXT)")
+    original={"id":"REFERENCE-1","uuid":"reference-point","fieldNotes":"Old observation"}
+    tombstone={"id":"REFERENCE-1","uuid":"reference-point","withdrawn":True}
+    replacement={**original,"fieldNotes":"Reviewed replacement"}
+    for seq,record_value in enumerate((original,tombstone,replacement),1):
+        db.execute("INSERT INTO changes VALUES (?,?,?,?,?)",(seq,seq,original["id"],json.dumps(record_value),json.dumps({"dense":[seq]})))
+    monkeypatch.setattr(cloud,"db",db,raising=False)
+    try:
+        change=cloud.visible_change((2,2,json.dumps(tombstone),"{}"))
+        assert change["seq"]==2
+        assert change["revision"]==3
+        assert change["record"]==replacement
+        assert change["vectors"]=={"dense":[3]}
+    finally: db.close()
+
+
+def test_republish_receipt_recovers_without_resending(unit,monkeypatch):
+    r=unit.save(record())
+    r.update(baseRevision=2,sharedWithdrawn=True)
+    unit.persist(r)
+    uploads=[]
+    lost=[False]
+    def handler(request):
+        if request.url.path=="/exchange":
+            uploads.append(json.loads(request.content))
+            lost[0]=True
+            raise httpx.ReadError("Committed upload acknowledgement lost")
+        if request.url.path.startswith("/receipts/"):
+            return httpx.Response(200,json={"revision":3 if lost[0] else None})
+        return httpx.Response(200,json=empty_changes() if request.url.path=="/changes" else {})
+    mock_client(monkeypatch,handler)
+    with pytest.raises(ConnectionError): unit.sync("http://test")
+    assert unit.get(r["id"])["sharedWithdrawn"]
+    unit.sync("http://test")
+    current=unit.get(r["id"])
+    assert len(uploads)==1
+    assert current["baseRevision"]==3
+    assert current["syncStatus"]=="SYNCED" and not current["dirty"]
+    assert not current["sharedWithdrawn"]
+    assert not unit.db.execute("SELECT 1 FROM outbox").fetchone()

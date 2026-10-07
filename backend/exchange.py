@@ -77,7 +77,7 @@ class ExchangeMixin:
                             if revision is not None:
                                 current["baseRevision"] = revision
                                 if current["eventId"] == original["eventId"]:
-                                    current.update(dirty=False,syncStatus="SYNCED")
+                                    current.update(dirty=False,syncStatus="SYNCED",sharedWithdrawn=False)
                                 self.persist(current)
                             if revision is not None or not policy(current,metered)[0]:
                                 self.db.execute("DELETE FROM outbox WHERE id=?", (rid,))
