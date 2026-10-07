@@ -59,3 +59,9 @@ A researcher explicitly confirms withdrawal in a record's detail panel. The devi
 The gateway records and applies a tombstone, removing the active vector point. Change responses suppress historical content when the latest revision is withdrawn. Connected devices receive the tombstone: unchanged downloaded copies are removed; local creations, edits or conflicting notes are retained privately. Server-side revision history and stored photo files are retained for audit/recovery; exported copies and offline devices cannot be instantaneously erased. This feature must not be represented as secure erasure or guaranteed recall of all copies.
 
 Normal field mode pauses withdrawal transmission too. Team-token access is the current authorization boundary; per-user deletion privileges are not implemented.
+
+## Presentation diagram assets
+
+The current two-page editable source is public/khojsetu-flow.drawio: final architecture plus reliability/resource rules. Matching SVG, PNG and animated GIF exports are in docs/media. The standalone public/pitch.html explains seven stages interactively and works without external assets. Animation is conceptual, not connected to live database activity.
+
+Regenerate matching current files with `.venv/Scripts/python.exe scripts/build_final_architecture.py` (Pillow required). Previous user-edited diagram and animation files are preserved in docs/archive/pre-final-2026-10-07. The two-device view describes supported field-unit roles; physical two-laptop deployment still requires LAN configuration and rehearsal.

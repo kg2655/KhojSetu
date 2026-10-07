@@ -8,7 +8,7 @@ A researcher records a find, searches related observations on the field laptop w
 
 ![KhojSetu: local memory and selective knowledge exchange](docs/media/khojsetu-flow.gif)
 
-*Conceptual workflow animation; not a recording of live database activity.*
+*Final architecture: two independent field units, selective exchange and separate photo storage. Conceptual animation, not live database activity. [Static scalable diagram](docs/media/khojsetu-flow.svg).*
 
 ## Documentation & Demo
 
@@ -55,18 +55,20 @@ The sample dataset is **40 synthetic archaeological records**, included in [back
 
 ```mermaid
 flowchart LR
-  subgraph Device[Field laptop]
-    UI[React field notebook] --> API[Python field API]
-    API --> Journal[SQLite records and queue]
-    API --> Model[Local MiniLM embeddings]
-    Model --> Edge[Qdrant Edge]
-    Edge --> Results[Semantic and hybrid retrieval]
-    API --> Policy[Approval and privacy policy]
+  subgraph A[Field unit A - offline capable]
+    UI[Notes, camera and reference packs] --> API[Local FastAPI]
+    API --> Model[Cached MiniLM text embeddings]
+    Model --> Edge[Qdrant Edge hybrid retrieval]
+    API --> Journal[SQLite records, revisions and outbox]
+    API --> Photos[Compressed local photographs]
+    Journal --> Policy[Approval, privacy and resource budgets]
   end
-  Policy --> Gateway[Version-aware exchange gateway]
-  Gateway --> Server[Qdrant Server]
-  Gateway -->|Shared changes| API
+  Policy <-->|Bounded exchange and retries| Gateway[Version-aware gateway]
+  Gateway --> Server[Qdrant Server vectors and metadata]
+  Gateway --> Attachments[Revision journal and chunked photo storage]
+  Gateway <-->|Approved changes, conflicts and withdrawals| B[Field unit B: its own API, model, SQLite and Qdrant Edge]
 ```
+
 
 The local API and cached model run on the laptop. Edge performs the actual vector retrieval; SQLite supplies record/queue state. The gateway writes shared vectors to Qdrant Server and maintains a revision journal. Synchronization is application-level record exchange, not a claim of built-in automatic Edge replication.
 

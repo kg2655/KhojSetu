@@ -56,3 +56,7 @@ The original five checks remain in backend/test_integration.py. To run those sep
 ## Sourced museum pack checkpoint
 
 Six reference-pack tests passed after adding the eight-record catalogue snapshot. The added test imports the file into isolated real Edge memory, checks three material-filtered retrieval queries and verifies duplicate-free re-import. These are smoke checks, not archaeological accuracy evaluation. Type checking and production build passed. The ordinary synthetic expedition was not modified.
+
+## Final presentation assets
+
+Production build passed. Both editable draw.io pages and SVG parsed successfully; GIF has 28 frames. Archived source assets were checked against previous versions (HTML checkout line endings preserved). Browser checks verified initial rendering, Next navigation and direct Reconcile selection at /pitch.html. These are presentation checks; backend tests were not rerun for this documentation-only change.
