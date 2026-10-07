@@ -1,15 +1,23 @@
 # Five-minute evaluation demo
 
-Open http://localhost:8000. Docker and the exchange gateway are only needed for steps 4–5. Use START-HERE.md to start them.
+Start the field app and exchange gateway with Start-KhojSetu.ps1 -WithExchange. Prepare a second field unit with Start-KhojSetu.ps1 -SecondUnit. Open localhost:8000 and localhost:8001; keep the second unit ready before presenting. Use a permitted photograph and clearly distinguish synthetic seed records from real observations.
 
-1. **30 seconds — the problem.** Remote excavation teams need useful local memory, even without internet. KhojSetu connects field observations through offline semantic retrieval and selective exchange.
-2. **60 seconds — local memory.** Show Field mode and the excavation grid. Open a finding. Search “decorated pottery with geometric patterns”; switch Semantic/Hybrid and filter L3. Point out Qdrant Edge and the measured timing. This is real local MiniLM inference and real Edge retrieval.
-3. **60 seconds — intelligent policy.** Create a high-priority record, approve it, select Automatic visibility. It queues for sharing. Explain that sensitive, unapproved and explicitly local records stay on the device; routine AUTO records are retained locally. Limited-link mode defers lower-priority uploads.
-4. **60 seconds — real exchange.** Enable exchange and press Exchange now. Show actual uploaded counts and the activity log. Open http://localhost:6333/dashboard and inspect khojsetu_shared_v1. These are real points, with 384-dimensional dense vectors, lexical sparse vectors and archaeological metadata.
-5. **90 seconds — two devices / evolving memory.** If the second unit is already running on port 8001, download shared records there. Edit one shared record independently in each unit, exchange the second unit first, then the first. Show both versions and merge the notes. If time is tight, explain the verified two-device integration test instead of pretending a conflict occurred in the live UI.
+1. **45 seconds — offline memory.** Keep Field mode enabled. Search “decorated pottery with geometric patterns”, switch Semantic/Hybrid and filter L3. Open a result and point to its original notes. Explain that the cached MiniLM model embeds locally and Qdrant Edge retrieves locally. Show the measured search time without calling it a production benchmark.
+2. **60 seconds — real capture and privacy.** Upload a permitted photo, or use the laptop camera after checking its permission beforehand. Save a high-priority finding with local-only visibility. Show its compressed working photo and searchable notes. Explain that image similarity search is not implemented: retrieval searches the description, not image pixels.
+3. **45 seconds — limited device resources.** Open System & activity. Show field-data usage, the separate model-cache cost and the per-cycle transfer allowance. Explain selective site/material downloads. Optionally show a small sourced reference pack prepared before the demo; references remain distinct from field discoveries.
+4. **60 seconds — controlled exchange.** Edit the finding, approve sharing, select Shared visibility and explicitly approve its photo. Disable Field mode and use Exchange now. Point to actual byte counts, queue state and verified photo-transfer status. Automatic exchange is opt-in and retries with backoff. Open localhost:6333/dashboard and inspect khojsetu_shared_v1: dense vectors, lexical sparse vectors and approved metadata are real Qdrant Server points.
+5. **90 seconds — two devices and changing knowledge.** Exchange on the second unit and open the received finding/photo. Edit the same record on both units, exchange the second unit first, then the first. Show the conflict and choose how to retain evidence. If time is short, show the successful transfer and explain the automated conflict checks; do not claim a live conflict occurred unless it did.
 
-Close: “Qdrant Edge is our local search engine. Qdrant Server stores the shared vectors. Our application adds privacy/priority policy, a durable queue, version checks, conflict review and the field notebook.”
+Close: “Qdrant Edge is the local retrieval engine. Qdrant Server stores shared vectors. KhojSetu adds privacy policy, storage and transfer budgets, durable retries, revision checks, conflict review and a usable field notebook.”
 
-Be precise: this is a working localhost reference implementation, not a deployed multi-tenant cloud service. Exchange is manually triggered. The assistant extracts source notes, rather than using a generative LLM. Photos are not embedded or synchronized. All preloaded archaeological records are synthetic.
+## Optional demonstrations
 
-Verified in this session: frontend type-check and production build; five integration tests using real Edge and a live Server; browser hybrid search returned relevant records with a measured 17.7 ms on the 40-record synthetic dataset. This timing is one small-data measurement, not a production benchmark.
+- Pin an unchanged downloaded reference, then unpin and remove only its local copy. Restore it through exchange. Locally authored or edited evidence is protected.
+- Explicitly withdraw a shared record. Connected units remove unchanged downloaded copies while retaining their own edits privately. This is not secure erasure of audit history or exported copies.
+- Import the synthetic format example twice into a disposable field unit: the second import preserves existing records. Use a permitted real reference pack when available; the importer records source declarations but does not certify them.
+
+## Accurate boundaries
+
+This is a single-team localhost deployment. Native phone execution, image embeddings, generative archaeological conclusions, per-user access control and distributed gateway scaling are not shipped. The assistant extracts original retrieved notes. Photos are compressed working copies with explicit, resumable exchange; full-resolution original-photo archival is not implemented. Seed records and the example reference pack are synthetic.
+
+See docs/VALIDATION.md for completed checks and measured development-laptop timings. Test the physical webcam and rehearse on the actual presentation laptop. Keep a recording as a backup for hardware or venue problems.

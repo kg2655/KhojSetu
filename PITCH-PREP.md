@@ -210,7 +210,7 @@ The user is the field archaeologist or supervisor. Potential institutional buyer
 
 **Are photographs searched?** No image embeddings or synchronized attachments are implemented. Current retrieval is text-based; the visible drawings are illustrations.
 
-**What is still incomplete?** Automatic reconnect exchange, production access control, real field validation, image retrieval and large-scale performance evaluation. The current implementation is a single-team local demonstration with manual exchange.
+**What is still incomplete?** Production access control, real field validation, image similarity retrieval and large-scale performance evaluation. The current implementation is a single-team local demonstration with manual or opt-in automatic exchange, bounded transfers and photo synchronization.
 
 **Why can I see a database dashboard without a login?** It runs on this laptop, bound to localhost. An externally hosted installation would need proper access controls and HTTPS.
 
@@ -228,7 +228,7 @@ Use this only if asked; do not read code during the main pitch.
 - `backend/test_integration.py`: real-engine tests covering retrieval, privacy, failed exchange, two devices/conflicts and restart recovery.
 - `compose.yaml`: starts the Qdrant Server container.
 
-The localhost setup has passed a production frontend build, type-check and five integration tests. A browser query measured 17.7 ms once on 40 records; this is a small-data observation, not a benchmark claim.
+The latest combined feature suite passed 29 checks; five earlier integration checks also passed. Frontend type checking and production build passed. See docs/VALIDATION.md for measurements and their limits; small-data timings are not production benchmarks.
 
 ## Final reminders
 
