@@ -65,3 +65,5 @@ Normal field mode pauses withdrawal transmission too. Team-token access is the c
 Architecture SVG, PNG and animated GIF exports are in docs/media. The standalone public/pitch.html explains seven stages interactively and works without external assets. Animation is conceptual, not connected to live database activity.
 
 Regenerate matching current files with `.venv/Scripts/python.exe scripts/build_final_architecture.py` (Pillow required). Previous user-edited diagram and animation files are preserved in docs/archive/pre-final-2026-10-07. The two-device view describes supported field-unit roles; physical two-laptop deployment still requires LAN configuration and rehearsal.
+
+The field station's museum reference shelf bundles three public-domain photographs as static application assets (about 520 KiB), outside the field-data budget. They match specific pack/entry IDs and illustrate reference records; they are not field attachments or image embeddings. One-click import uses the existing bounded, local-only reference-pack API. See DATASET-SOURCES.md for attribution and boundaries.

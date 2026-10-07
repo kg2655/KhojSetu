@@ -17,7 +17,7 @@
         <mxCell id="zone2" value="FIELD UNIT B / LOCAL EDGE" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#e6ebdf;strokeColor=#bac5b0;fontColor=#283c32;fontSize=18;fontFamily=Helvetica;align=left;spacing=16;verticalAlign=top;">
           <mxGeometry as="geometry" x="1100" y="145" width="470" height="655" />
         </mxCell>
-        <mxCell id="aui" value="Field notebook + FastAPI&#10;Notes / camera / upload / sourced packs" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fcfaf4;strokeColor=#bac5b0;fontColor=#283c32;fontSize=18;fontFamily=Helvetica;align=left;spacing=16;">
+        <mxCell id="aui" value="Field notebook + FastAPI&#10;Notes / camera / museum references" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fcfaf4;strokeColor=#bac5b0;fontColor=#283c32;fontSize=18;fontFamily=Helvetica;align=left;spacing=16;">
           <mxGeometry as="geometry" x="60" y="210" width="410" height="76" />
         </mxCell>
         <mxCell id="amodel" value="Local MiniLM embeddings&#10;Text to 384 numbers; cached on device" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fcfaf4;strokeColor=#bac5b0;fontColor=#283c32;fontSize=18;fontFamily=Helvetica;align=left;spacing=16;">
@@ -35,7 +35,7 @@
         <mxCell id="apolicy" value="Policy + resource controls&#10;Approval / privacy / storage / selection" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fcfaf4;strokeColor=#bac5b0;fontColor=#283c32;fontSize=18;fontFamily=Helvetica;align=left;spacing=16;">
           <mxGeometry as="geometry" x="60" y="710" width="410" height="66" />
         </mxCell>
-        <mxCell id="bui" value="Field notebook + FastAPI&#10;Notes / camera / upload / sourced packs" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fcfaf4;strokeColor=#bac5b0;fontColor=#283c32;fontSize=18;fontFamily=Helvetica;align=left;spacing=16;">
+        <mxCell id="bui" value="Field notebook + FastAPI&#10;Notes / camera / museum references" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fcfaf4;strokeColor=#bac5b0;fontColor=#283c32;fontSize=18;fontFamily=Helvetica;align=left;spacing=16;">
           <mxGeometry as="geometry" x="1130" y="210" width="410" height="76" />
         </mxCell>
         <mxCell id="bmodel" value="Local MiniLM embeddings&#10;Text to 384 numbers; cached on device" vertex="1" parent="1" style="rounded=1;whiteSpace=wrap;html=0;fillColor=#fcfaf4;strokeColor=#bac5b0;fontColor=#283c32;fontSize=18;fontFamily=Helvetica;align=left;spacing=16;">

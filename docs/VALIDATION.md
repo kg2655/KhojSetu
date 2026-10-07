@@ -66,3 +66,11 @@ Production build passed. Both editable draw.io pages and SVG parsed successfully
 Added Capture / Retrieve / Exchange entry points on the field station. State refresh requests have an eight-second timeout and share an in-flight request. A disconnected local backend now produces a persistent stale-record warning and disables the exchange-mode toggle; successful polling restores the ready state. Field mode remains distinct from backend unavailability.
 
 Type checking and production build passed. Browser checks verified the search shortcut and visual layout. An isolated read-only preview verified service failure (HTTP 503), warning visibility, disabled toggle and automatic recovery; the normal 40-record field dataset was not changed. Check-KhojSetu.ps1 passed against the real field app/gateway, and correctly returned exit code 1 for an unavailable gateway. The script performs no synchronization or data writes. Camera capture and physical two-laptop exchange remain manual preflight items.
+
+## Real-image reference shelf - 8 October 2026
+
+The field station now includes three verified public-domain Met photographs, served from bundled static assets (532,180 bytes total), plus a one-click import of the eight-note museum pack. Matching imported references display their corresponding museum image; uploaded field photographs take priority. Synthetic expedition illustrations remain labelled and are not replaced with unrelated museum photographs.
+
+Type checking and production build passed. All six reference-pack tests passed (non-failing dependency/cache warnings). Image files and their pack-entry mappings were validated; both diagram pages parsed and the GIF has 28 frames. Browser checks verified all three photographs loaded, one-click import (8 added, 0 overwritten), the bronze-vessel search shortcut and result, and its photograph/source in record detail. Fixed reference-result labels to avoid displaying placeholder excavation coordinates.
+
+The main local demo now has 40 original synthetic field records plus 8 local-only museum references; no original observations were deleted or overwritten and field mode stayed enabled. This is not a real excavation deployment or image-recognition evaluation. Museum photographs are static application assets, outside the field-data budget and field attachment synchronization.

@@ -10,6 +10,12 @@ Start the field app and exchange gateway with Start-KhojSetu.ps1 -WithExchange. 
 
 Close: “Qdrant Edge is the local retrieval engine. Qdrant Server stores shared vectors. KhojSetu adds privacy policy, storage and transfer budgets, durable retries, revision checks, conflict review and a usable field notebook.”
 
+## Real-image reference demonstration
+
+Before presenting, use **Add 8 museum references** on Field station. This preserves the 40 synthetic records and adds clearly labelled local-only references. The three real Met photographs are already bundled for offline display. Choose **Search notes** beneath an object, then **Search memory**; open the matching reference to show the image and source. Retrieval still searches text, not image pixels. These objects span different regions/periods and are not one excavation dataset. Museum source links require internet; reference viewing and search do not.
+
+Run `Check-KhojSetu.ps1 -WithExchange -SecondUnit` after starting both units. It checks service readiness without changing records; it does not replace the end-to-end rehearsal.
+
 ## Optional demonstrations
 
 - Pin an unchanged downloaded reference, then unpin and remove only its local copy. Restore it through exchange. Locally authored or edited evidence is protected.

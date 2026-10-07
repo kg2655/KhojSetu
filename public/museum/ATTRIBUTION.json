@@ -1,0 +1,50 @@
+[
+  {
+    "id": "453159",
+    "imageId": 874916,
+    "title": "Pierced bronze vessel",
+    "date": "17th century",
+    "origin": "India",
+    "material": "Metal",
+    "accession": "1982.65",
+    "query": "bronze vessel pierced decoration",
+    "image": "/museum/453159.jpg",
+    "sourceUrl": "https://www.metmuseum.org/art/collection/search/453159",
+    "imageSourceUrl": "https://collectionapi.metmuseum.org/api/collection/v1/iiif/453159/874916/main-image",
+    "license": "Public domain / Met Open Access CC0",
+    "checked": "2026-10-08",
+    "bytes": 153729
+  },
+  {
+    "id": "548768",
+    "imageId": 1208952,
+    "title": "Carnelian bead necklace",
+    "date": "ca. 1473–1458 BCE",
+    "origin": "Egypt",
+    "material": "Stone",
+    "accession": "25.3.94",
+    "query": "carnelian string beads",
+    "image": "/museum/548768.jpg",
+    "sourceUrl": "https://www.metmuseum.org/art/collection/search/548768",
+    "imageSourceUrl": "https://collectionapi.metmuseum.org/api/collection/v1/iiif/548768/1208952/main-image",
+    "license": "Public domain / Met Open Access CC0",
+    "checked": "2026-10-08",
+    "bytes": 278151
+  },
+  {
+    "id": "247440",
+    "imageId": 542751,
+    "title": "Terracotta bowl",
+    "date": "4th–3rd century BCE",
+    "origin": "Etruscan",
+    "material": "Ceramic",
+    "accession": "06.1021.274",
+    "query": "Etruscan terracotta bowl",
+    "image": "/museum/247440.jpg",
+    "sourceUrl": "https://www.metmuseum.org/art/collection/search/247440",
+    "imageSourceUrl": "https://collectionapi.metmuseum.org/api/collection/v1/iiif/247440/542751/main-image",
+    "license": "Public domain / Met Open Access CC0",
+    "checked": "2026-10-08",
+    "bytes": 100300
+  }
+]
