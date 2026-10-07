@@ -11,3 +11,5 @@
 .withdrawal-panel{padding:18px;background:#f2e8df;border:1px solid #d4b9a1;margin-top:20px}.withdrawal-panel strong{font-size:13px}.withdrawal-panel p{font-size:12px;line-height:1.7;margin:8px 0 15px}
 
 .reference-art{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;min-height:90px;padding:18px;color:#766c55;background:#efebe1}.reference-art small{font-size:11px;text-align:center}
+
+.reference-provenance{padding:16px;background:#efebe1;border-left:3px solid #a55036;margin:18px 0}.source-address{overflow-wrap:anywhere}

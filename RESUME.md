@@ -16,3 +16,5 @@ Remaining: check webcam on the presentation laptop, obtain permitted real images
 To resume: open this repository and inspect git status/log; manually open Docker Desktop; run Start-KhojSetu.ps1 -WithExchange and open localhost:8000. Publish tested checkpoints with normal non-force pushes.
 
 Preferences: conserve credits, explain simply, keep the user updated, use project-focused submission names, preserve edited draw.io and keep personal pitch guides out of prominent README links. Docker's stale-socket startup failure was resolved by a normal manual Quit/reopen, not factory reset.
+
+UI audit checkpoint: reference provenance is shown independently of editable notes. Archive, detail view, editor and evidence answers distinguish references from field locations. Five reference-pack tests, type checking and build passed after the fixes. Isolated browser review verified archive/detail/editor behavior using UI-REVIEW on port 8002; the normal 40-record dataset was untouched. Physical webcam, permitted real data and rehearsal remain presentation preflight items.

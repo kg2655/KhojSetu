@@ -75,4 +75,7 @@ def test_pack_api_bounds_and_local_only_import(unit,monkeypatch):
         response=client.post("/api/reference-packs",json=payload())
         assert response.status_code==200 and response.json()["imported"]==2
         assert all(not r["approved"] for r in unit.records())
+        evidence=client.post("/api/assistant",json={"query":"painted pottery"}).json()
+        assert "Imported reference; no excavation location" in evidence["answer"]
+        assert "R0, L1" not in evidence["answer"]
     finally:client.close()

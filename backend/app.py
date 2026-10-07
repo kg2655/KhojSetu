@@ -87,9 +87,12 @@ def assistant(data: SearchInput):
     result = store().search(data)
     evidence = result['results'][:5]
     # Extractive evidence, never invented typology, dating or archaeological interpretation.
+    def excerpt(item):
+        r = item['record']
+        context = 'Imported reference; no excavation location' if r.get('referenceSource') else f"{r['grid']}, {r['layer']}"
+        return f"[{r['id']}] {r['title']} — {context}: {r['fieldNotes']}"
     result['answer'] = ('Insufficient evidence in local field memory.' if not evidence else
-        '\n\n'.join(f"[{e['record']['id']}] {e['record']['title']} — {e['record']['grid']}, "
-                    f"{e['record']['layer']}: {e['record']['fieldNotes']}" for e in evidence))
+                        '\n\n'.join(excerpt(e) for e in evidence))
     result['assistantMode'] = 'Extractive evidence review · no generative model'
     return result
 
