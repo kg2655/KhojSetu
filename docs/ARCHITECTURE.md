@@ -41,7 +41,9 @@ The 40-record synthetic expedition is intentional. The design is suitable for de
 
 Selection requests exclude never-shared private record IDs. Up to 5,000 known shared IDs are supported per filtered request; this is a bounded small-device design, not a large-catalog subscription service. The gateway examines at most 1,000 change events per selected page and returns a cursor to resume. Subscription metadata is control traffic outside the content-byte counter.
 
-Curated reference-pack import and removable reference caches remain planned extensions.
+Unchanged downloaded references can be pinned, removed locally and explicitly restored. Removal is journalled before deleting the Edge point, so startup repairs an interrupted operation. Removed IDs are excluded from automatic downloads; an explicit restore replays history even if the current site/material selection would exclude that record. Your own or locally edited records, pending changes, conflicts and unverified/private photo evidence are protected. Legacy records without ownership metadata are conservatively protected. Shared records are not deleted by cache removal. Edge files can retain preallocated capacity for reuse.
+
+Curated reference-pack import remains a planned extension.
 
 ## Boundaries
 

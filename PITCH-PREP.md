@@ -106,7 +106,7 @@ Those 384 numbers are a learned representation of text. Nearby vectors often cor
 
 Hybrid search combines **dense semantic retrieval and lexical sparse retrieval**, then combines their rankings using reciprocal-rank fusion. The current lexical encoder uses term frequencies; do not call it BM25. Qdrant performs the underlying searches; our application combines the ranked results.
 
-The assistant currently extracts original notes with source IDs. It does not call ChatGPT, Gemini or another generative model. That keeps its answers tied to the recorded evidence.
+The assistant currently extracts original notes with source IDs. It does not call an external generative model. That keeps its answers tied to the recorded evidence.
 
 The shared server runs in Docker on this laptop for the demo. Docker packages the server and its dependencies. This demonstrates real client-server exchange, but **it is not a deployed external cloud**. Qdrant Cloud can be configured later. No account is required now.
 

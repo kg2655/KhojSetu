@@ -103,7 +103,7 @@ def exchange(req: Exchange):
     if not policy(req.record)[0]:
         raise HTTPException(422,"Record is not approved for sharing")
     # Device-local fields never become shared payloads, even for a manually crafted request.
-    record = {k:v for k,v in req.record.items() if k not in ("imageUrl","conflict","photoBackedUp","pinned")}
+    record = {k:v for k,v in req.record.items() if k not in ("imageUrl","conflict","photoBackedUp","pinned","localOwned")}
     if not record.get("sharePhoto"):
         record.update(photoHash=None,photoBytes=0)
     with lock:
@@ -165,6 +165,7 @@ class ChangeSelection(BaseModel):
     site: str = Field(default="", max_length=120)
     material: str = Field(default="", max_length=50)
     known_ids: list[str] = Field(default_factory=list, max_length=5000)
+    excluded_ids: list[str] = Field(default_factory=list, max_length=5000)
 
 
 @app.post("/changes/query", dependencies=[Depends(authorize)])
@@ -175,6 +176,7 @@ def selected_changes(selection: ChangeSelection):
         rows = db.execute("SELECT seq,revision,body,vectors FROM changes WHERE seq>? ORDER BY seq LIMIT 1001",
                           (selection.after,)).fetchall()
         known = set(selection.known_ids)
+        excluded = set(selection.excluded_ids)
         page = {"changes":[],"cursor":selection.after,"hasMore":False,"skipped":0}
         for row in rows[:1000]:
             if len(page["changes"]) >= selection.limit:
@@ -183,7 +185,7 @@ def selected_changes(selection: ChangeSelection):
             record = json.loads(row[2])
             matches = ((not selection.site or record.get("site","").casefold()==selection.site.casefold()) and
                        (not selection.material or record.get("material","").casefold()==selection.material.casefold()))
-            if record["id"] not in known and not matches:
+            if record["id"] in excluded or (record["id"] not in known and not matches):
                 page["cursor"] = row[0]
                 page["skipped"] += 1
                 continue

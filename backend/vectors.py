@@ -75,5 +75,8 @@ class VectorMemory:
         return [(points[k], scores[k], 'Dense + lexical reciprocal-rank fusion')
                 for k in sorted(scores, key=scores.get, reverse=True)[:limit]]
 
+    def remove(self, point_id):
+        self.shard.update(UpdateOperation.delete_points([point_id]))
+
     def close(self):
         self.shard.close()

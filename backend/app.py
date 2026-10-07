@@ -158,6 +158,37 @@ def seed():
     return state()
 
 
+class ReferenceAction(BaseModel):
+    expectedVersion: int
+
+class PinAction(ReferenceAction):
+    pinned: bool
+
+@app.get('/api/references')
+def references():
+    return store().cache_catalogue()
+
+@app.post('/api/references/{rid}/remove')
+def remove_reference(rid: str, data: ReferenceAction):
+    try:
+        return store().evict(rid,data.expectedVersion)
+    except ValueError as exc:
+        raise HTTPException(409,str(exc))
+
+@app.post('/api/references/{rid}/restore')
+def restore_reference(rid: str):
+    try:
+        return store().restore_reference(rid)
+    except ValueError as exc:
+        raise HTTPException(409,str(exc))
+
+@app.post('/api/records/{rid}/pin')
+def pin_record(rid: str, data: PinAction):
+    try:
+        return store().pin(rid,data.pinned,data.expectedVersion)
+    except ValueError as exc:
+        raise HTTPException(409,str(exc))
+
 @app.get('/api/storage')
 def storage():
     with store().lock:

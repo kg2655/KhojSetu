@@ -74,7 +74,7 @@ class ExchangeMixin:
                         else:
                             vec = json.loads(self.db.execute("SELECT vectors FROM records WHERE id=?", (rid,)).fetchone()[0])
                             public = {k:v for k,v in r.items() if k not in
-                                      ("imageUrl", "conflict", "photoBackedUp", "pinned")}
+                                      ("imageUrl", "conflict", "photoBackedUp", "pinned", "localOwned")}
                             if not r.get("sharePhoto"):
                                 public.update(photoHash=None, photoBytes=0)
                             envelope = dict(record=public, vectors=vec,
@@ -111,14 +111,17 @@ class ExchangeMixin:
                         selection_site = self.setting("downloadSite","")
                         selection_material = self.setting("downloadMaterial","")
                         known_ids = [r["id"] for r in self.records() if r.get("baseRevision",0)>0]
+                        known_ids += [row[0] for row in self.db.execute("SELECT id FROM evicted WHERE revision IS NULL")]
+                        excluded_ids = [row[0] for row in self.db.execute("SELECT id FROM evicted WHERE revision IS NOT NULL")]
+                        restore_pending = bool(self.db.execute("SELECT 1 FROM evicted WHERE revision IS NULL").fetchone())
                         # A full local budget pauses downloads, not local evidence deletion.
                         allow_download = self.storage()["dataBytes"] + budget < self.storage()["budgetBytes"]
                     if allow_download:
-                        if selection_site or selection_material:
-                            if len(known_ids)>5000:
+                        if selection_site or selection_material or excluded_ids or restore_pending:
+                            if len(known_ids)>5000 or len(excluded_ids)>5000:
                                 raise ValueError("Filtered exchange supports up to 5,000 local records. Use all-material/all-site exchange.")
                             response = client.post("/changes/query", json={"after":cursor,"limit":20,"max_bytes":budget,
-                                "site":selection_site,"material":selection_material,"known_ids":known_ids})
+                                "site":selection_site,"material":selection_material,"known_ids":known_ids,"excluded_ids":excluded_ids})
                         else:
                             response = client.get("/changes", params={"after":cursor, "limit":20, "max_bytes":budget})
                         response.raise_for_status()
@@ -145,7 +148,8 @@ class ExchangeMixin:
                                     incoming = {**remote, "baseRevision":revision, "dirty":False,
                                                 "conflict":None, "syncStatus":"SYNCED",
                                                 "imageUrl":None, "photoBackedUp":False,
-                                                "pinned":local.get("pinned",False) if local else False}
+                                                "pinned":local.get("pinned",False) if local else False,
+                                                "localOwned":local.get("localOwned",True) if local else False}
                                     if local and local.get("photoHash") and not local.get("sharePhoto"):
                                         for key in ("photoHash","photoBytes","imageUrl","sharePhoto"):
                                             incoming[key] = local.get(key)
@@ -153,6 +157,8 @@ class ExchangeMixin:
                                     if digest and photo_path(self.photo_dir, digest).exists():
                                         incoming["imageUrl"] = "/api/photos/" + digest
                                     self.persist(incoming, change["vectors"])
+                                    self.db.execute("DELETE FROM evicted WHERE id=? AND revision IS NULL",(incoming["id"],))
+                                    self.db.commit()
                                     result["downloaded"] += 1
                                 self.set_setting("cursor", change["seq"])
                             else:

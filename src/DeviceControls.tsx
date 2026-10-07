@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { ReferenceMemory } from './ReferenceMemory';
 type Storage = {dataBytes:number;photoBytes:number;indexBytes:number;otherBytes:number;budgetBytes:number;modelBytes:number;freeDiskBytes:number;recordCount:number;protectedPhotos:number};
 type Settings = {autoSync:boolean;metered:boolean;transferKiB:number;downloadSite:string;downloadMaterial:string};
 const size=(n:number)=>n<1024*1024?(n/1024).toFixed(1)+' KiB':(n/1024/1024).toFixed(1)+' MiB';
@@ -30,6 +31,7 @@ export function DeviceControls({settings,onSaved}:{settings:Settings;onSaved:()=
       <div className="button-row"><button disabled={busy} className="primary">Save preferences</button><button disabled={busy} type="button" className="secondary" onClick={()=>submit({},'/storage/cleanup')}>Clear unused photos</button><button disabled={busy} type="button" className="secondary" onClick={()=>load().catch(e=>setError(e.message))}>Refresh usage</button></div>
     </form>
     <p className="storage-explanation">Cleanup removes only unattached files older than 24 hours. Attached findings, pending work and conflict evidence are never removed automatically. The original 40-record expedition remains intentionally small.</p>
+    <ReferenceMemory onChanged={async()=>{await load();await onSaved();}}/>
     {error&&<p className="photo-error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
   </section>;
 }

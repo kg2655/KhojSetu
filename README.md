@@ -35,7 +35,7 @@ Potential users include excavation teams, research programmes and archaeological
 | Context filtering | Layer and material filters |
 | Field photographs | Camera or upload; metadata-stripped JPEG working copies, displayed in records and search results |
 | Selective downloads | Choose a site/material for new findings; existing local records keep receiving revisions |
-| Device storage | Configurable admission budget, usage breakdown, protected attached evidence and unused-photo cleanup |
+| Device storage | Configurable admission budget, usage breakdown, protected evidence, unused-photo cleanup and removable/restorable downloaded references |
 | Persistent field records | SQLite journal, local versions and durable pending state |
 | Selective exchange | Sensitivity, researcher approval, visibility and priority rules; limited-link upload prioritization |
 | Shared storage | Real Qdrant Server in Docker, accessed through a Python exchange gateway |
@@ -107,7 +107,7 @@ Closing browser tabs does not stop the backend. Stopping services does not erase
 
 ## Validation
 
-The updated implementation has passed TypeScript checking, a production frontend build and 19 regression checks using real Qdrant Edge; gateway checks use a disposable real Qdrant Server. Coverage includes the original filter/privacy/conflict/restart cases plus stalled uploads, lost acknowledgements, revoked sharing, storage admission, photo compression, chunk retries, integrity checks, authentication and interrupted gateway writes. Browser verification covered photo upload and saving; physical webcam capture remains a device-specific preflight check.
+The updated implementation has passed TypeScript checking, a production frontend build and 22 regression checks using real Qdrant Edge; gateway checks use a disposable real Qdrant Server. Coverage includes the original filter/privacy/conflict/restart cases plus stalled uploads, lost acknowledgements, revoked sharing, storage admission, photo compression, chunk retries, integrity checks, authentication and interrupted gateway writes. Browser verification covered photo upload and saving; physical webcam capture remains a device-specific preflight check.
 
 See [verification instructions](docs/VALIDATION.md) for isolated test setup. Test data must not be mixed with the expedition used for presentation.
 
@@ -133,12 +133,12 @@ Choose **Use camera** or **Upload photo** in the recording form. Browser camera 
 
 A photo stays local unless **Also exchange this compressed photo** is selected and the record passes the approval/privacy policy. Metadata can arrive before its photo; the interface distinguishes record synchronization from verified photo transfer. Search uses written descriptions, not image embeddings.
 
-Cleanup only removes unattached files older than 24 hours. It never automatically removes a photograph attached to a record or needed by a pending upload/conflict.
+Cleanup only removes unattached files older than 24 hours. It never automatically removes a photograph attached to a record or needed by a pending upload/conflict. Under System & activity, unchanged downloaded references can be explicitly removed and restored. Pinned references, your own observations and locally edited evidence stay protected. Removing a cache entry does not delete its shared copy; index allocation may be reused rather than immediately shrinking.
 
 ## Scope and remaining work
 
 - Automatic exchange polls with bounded retries; it is not an operating-system connectivity event subscription.
-- Shared changes can be filtered by site/material within transfer budgets. Existing local records remain subscribed to updates. Selection changes replay history without deleting local evidence. Curated reference-pack import and eviction of downloaded records remain unimplemented.
+- Shared changes can be filtered by site/material within transfer budgets. Existing local records remain subscribed to updates. Selection changes replay history without deleting local evidence. Curated reference-pack import remains unimplemented.
 - The assistant is extractive, not a generative archaeological expert. Similarity scores are not confidence in historical facts.
 - Image similarity search and full-resolution original-photo backup are not implemented.
 - The current deployment is single-team localhost with one gateway worker. Optional bearer-token authentication is supported; remote hosting also requires HTTPS. Multi-team authorization and distributed scaling require further work.

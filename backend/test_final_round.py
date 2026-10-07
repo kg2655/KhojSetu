@@ -331,3 +331,62 @@ def test_selection_does_not_disclose_unshared_private_ids(unit,monkeypatch):
     mock_client(monkeypatch,handler)
     unit.sync("http://test")
     assert private["id"] not in selections[0]["known_ids"]
+
+def test_cache_protects_own_pinned_and_locally_edited_records(unit):
+    own=unit.save(record())
+    with pytest.raises(ValueError,match="Created or edited"):
+        unit.evict(own["id"],own["version"])
+    reference=unit.save(record(title="Downloaded ceramic reference"))
+    reference.update(localOwned=False,dirty=False,syncStatus="SYNCED",baseRevision=1)
+    unit.persist(reference)
+    unit.pin(reference["id"],True,reference["version"])
+    with pytest.raises(ValueError,match="Pinned"):
+        unit.evict(reference["id"],reference["version"])
+    unit.pin(reference["id"],False,reference["version"])
+    unit.save({**record(fieldNotes="Locally added evidence on this reference."),"expectedVersion":1},reference["id"])
+    with pytest.raises(ValueError,match="Created or edited"):
+        unit.evict(reference["id"],2)
+
+def test_cache_gateway_remove_excludes_and_restores(unit,gateway,monkeypatch,tmp_path):
+    public=unit.save(record(material="Ceramic"))
+    route_gateway(monkeypatch,gateway)
+    unit.sync("http://test","test-secret")
+    b=Store(tmp_path/"cache",VectorMemory(tmp_path/"cache/edge",ROOT/".models"),"CACHE")
+    try:
+        b.set_setting("fieldMode","false")
+        b.sync("http://test","test-secret")
+        local=b.get(public["id"])
+        assert local["localOwned"] is False
+        assert not b.cache_reason(local)
+        b.evict(local["id"],local["version"])
+        assert b.get(local["id"]) is None
+        assert not b.search(SearchInput(query="painted ceramic"))["results"]
+        source=unit.get(public["id"])
+        unit.save({**record(fieldNotes="Updated shared observation after cache removal."),"expectedVersion":source["version"]},public["id"])
+        unit.sync("http://test","test-secret")
+        b.sync("http://test","test-secret")
+        assert b.get(local["id"]) is None
+        b.configure({"downloadMaterial":"Glass","downloadSite":"Different site"})
+        b.restore_reference(local["id"])
+        b.sync("http://test","test-secret")
+        assert b.get(local["id"])["fieldNotes"]=="Updated shared observation after cache removal."
+        assert not b.cache_catalogue()["removed"]
+        assert b.search(SearchInput(query="updated shared observation"))["results"]
+    finally: b.close()
+
+def test_cache_interrupted_removal_is_recovered(tmp_path,monkeypatch):
+    folder=tmp_path/"evict-restart"
+    first=Store(folder,VectorMemory(folder/"edge",ROOT/".models"))
+    r=first.save(record())
+    r.update(localOwned=False,dirty=False,baseRevision=1,syncStatus="SYNCED")
+    first.persist(r)
+    def fail(point_id): raise OSError("Injected interruption after durable removal intent")
+    monkeypatch.setattr(first.vectors,"remove",fail)
+    with pytest.raises(OSError): first.evict(r["id"],1)
+    first.close()
+    second=Store(folder,VectorMemory(folder/"edge",ROOT/".models"))
+    try:
+        assert second.get(r["id"]) is None
+        assert not second.search(SearchInput(query="painted ceramic"))["results"]
+        assert second.cache_catalogue()["removed"][0]["id"]==r["id"]
+    finally: second.close()
