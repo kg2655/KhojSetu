@@ -43,7 +43,7 @@ Selection requests exclude never-shared private record IDs. Up to 5,000 known sh
 
 Unchanged downloaded references can be pinned, removed locally and explicitly restored. Removal is journalled before deleting the Edge point, so startup repairs an interrupted operation. Removed IDs are excluded from automatic downloads; an explicit restore replays history even if the current site/material selection would exclude that record. Your own or locally edited records, pending changes, conflicts and unverified/private photo evidence are protected. Legacy records without ownership metadata are conservatively protected. Shared records are not deleted by cache removal. Edge files can retain preallocated capacity for reuse.
 
-Curated reference-pack import remains a planned extension.
+Offline reference-pack import is implemented with a 1 MiB / 100-note input limit, source and permission labels, duplicate protection, preservation of local edits and storage-limited retry. The bundled eight-record museum pack contains sourced text references; images are not imported automatically.
 
 ## Boundaries
 
