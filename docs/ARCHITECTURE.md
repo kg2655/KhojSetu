@@ -49,4 +49,13 @@ Curated reference-pack import remains a planned extension.
 
 The demo's Qdrant Server runs in Docker on the same laptop. No cloud account is required. A remote deployment must add HTTPS and configure the shared token. The token authenticates a team endpoint; it is not per-user authorization or multi-team isolation.
 
-Images are attachments, not image embeddings. The assistant extracts source notes rather than inventing archaeological interpretations. Shared-copy deletion, full-resolution photo archives, native phone execution and distributed gateway scaling are not implemented.
+Images are attachments, not image embeddings. The assistant extracts source notes rather than inventing archaeological interpretations. Secure erasure of audit/exported copies, full-resolution photo archives, native phone execution and distributed gateway scaling are not implemented.
+
+
+## Explicit shared withdrawal
+
+A researcher explicitly confirms withdrawal in a record's detail panel. The device persists the versioned request and retains its local notes. A stale shared revision becomes a conflict, requiring review. Retrying a lost acknowledgement uses the same event ID.
+
+The gateway records and applies a tombstone, removing the active vector point. Change responses suppress historical content when the latest revision is withdrawn. Connected devices receive the tombstone: unchanged downloaded copies are removed; local creations, edits or conflicting notes are retained privately. Server-side revision history and stored photo files are retained for audit/recovery; exported copies and offline devices cannot be instantaneously erased. This feature must not be represented as secure erasure or guaranteed recall of all copies.
+
+Normal field mode pauses withdrawal transmission too. Team-token access is the current authorization boundary; per-user deletion privileges are not implemented.

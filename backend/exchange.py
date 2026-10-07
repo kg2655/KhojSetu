@@ -22,7 +22,7 @@ class ExchangeMixin:
             raise ValueError("An exchange is already running.")
         result = dict(uploaded=0, downloaded=0, conflicts=0, deferred=0,
                       uploadedBytes=0, downloadedBytes=0, photosUploaded=0,
-                      photosDownloaded=0, morePending=False)
+                      photosDownloaded=0, withdrawals=0, morePending=False)
         try:
             if self._paused():
                 raise ValueError("Field mode is active. Enable exchange before connecting.")
@@ -36,6 +36,31 @@ class ExchangeMixin:
                 client.get("/health").raise_for_status()
                 self._status("Transferring")
                 sent = 0
+                with self.lock:
+                    withdrawals=[json.loads(row[0]) for row in self.db.execute("SELECT body FROM withdrawal_queue")]
+                for envelope in withdrawals[:20]:
+                    if self._paused():
+                        break
+                    body=encoded(envelope)
+                    if result["uploadedBytes"]+len(body)>budget:
+                        result["morePending"]=True
+                        break
+                    response=client.post("/withdraw",content=body,headers={"Content-Type":"application/json"})
+                    result["uploadedBytes"]+=len(body)
+                    if response.status_code==409:
+                        with self.lock:
+                            current=self.get(envelope["id"])
+                            current.update(conflict=response.json()["detail"],syncStatus="CONFLICT",withdrawalPending=False)
+                            self.persist(current)
+                            self.db.execute("DELETE FROM withdrawal_queue WHERE id=?",(envelope["id"],))
+                            self.db.commit()
+                            result["conflicts"]+=1
+                        continue
+                    response.raise_for_status()
+                    with self.lock:
+                        current=self.get(envelope["id"])
+                        self.apply_withdrawal({"id":current["id"],"uuid":current["uuid"],"withdrawn":True},response.json()["revision"])
+                        result["withdrawals"]+=1
                 for rid in ids:
                     if self._paused() or sent >= 20:
                         result["morePending"] = True
@@ -60,7 +85,7 @@ class ExchangeMixin:
                     with self.lock:
                         r = self.get(rid)
                         saved = self.db.execute("SELECT body FROM outbox WHERE id=?", (rid,)).fetchone()
-                        if r.get("conflict"):
+                        if r.get("conflict") or r.get("withdrawalPending"):
                             continue
                         if not policy(r, metered)[0]:
                             if r.get("dirty"):
@@ -74,7 +99,7 @@ class ExchangeMixin:
                         else:
                             vec = json.loads(self.db.execute("SELECT vectors FROM records WHERE id=?", (rid,)).fetchone()[0])
                             public = {k:v for k,v in r.items() if k not in
-                                      ("imageUrl", "conflict", "photoBackedUp", "pinned", "localOwned")}
+                                      ("imageUrl", "conflict", "photoBackedUp", "pinned", "localOwned", "sharedWithdrawn", "withdrawalPending")}
                             if not r.get("sharePhoto"):
                                 public.update(photoHash=None, photoBytes=0)
                             envelope = dict(record=public, vectors=vec,
@@ -99,7 +124,7 @@ class ExchangeMixin:
                         else:
                             current["baseRevision"] = response.json()["revision"]
                             if current["eventId"] == envelope["eventId"]:
-                                current.update(dirty=False, syncStatus="SYNCED")
+                                current.update(dirty=False, syncStatus="SYNCED",sharedWithdrawn=False)
                             # A newer edit stays dirty; only its base revision is advanced.
                             result["uploaded"] += 1
                         self.persist(current)
@@ -134,6 +159,11 @@ class ExchangeMixin:
                             for change in page["changes"]:
                                 remote, revision = change["record"], change["revision"]
                                 local = self.get(remote["id"])
+                                if remote.get("withdrawn"):
+                                    if self.apply_withdrawal(remote,revision):
+                                        result["withdrawals"]+=1
+                                    self.set_setting("cursor",change["seq"])
+                                    continue
                                 if local and revision <= local.get("baseRevision", 0):
                                     continue
                                 # A pending acknowledgement must be reconciled before downloads.

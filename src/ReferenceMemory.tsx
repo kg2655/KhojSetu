@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 type Reference={id:string;title:string;version:number;pinned:boolean;reason:string};
-type Removed={id:string;title:string;revision:number|null};
+type Removed={id:string;title:string;revision:number|null;withdrawn:boolean};
 type Catalogue={references:Reference[];removed:Removed[]};
 export function ReferenceMemory({onChanged}:{onChanged:()=>Promise<unknown>}){
   const [data,setData]=useState<Catalogue>({references:[],removed:[]});
@@ -18,7 +18,7 @@ export function ReferenceMemory({onChanged}:{onChanged:()=>Promise<unknown>}){
     {!data.references.length&&<p className="empty-note">No removable downloads yet. Findings created on this device are protected; references appear after another field unit shares them.</p>}
     {data.references.map(r=><div className="reference-row" key={r.id}><div><strong>{r.title}</strong><small>{r.id} · {r.reason||'Unchanged shared reference · local copy can be removed'}</small></div><div className="button-row"><button type="button" className="secondary" disabled={busy} onClick={()=>act('/records/'+r.id+'/pin',{pinned:!r.pinned,expectedVersion:r.version},r.pinned?'Reference unpinned.':'Reference pinned for offline use.')}>{r.pinned?'Unpin':'Keep offline'}</button><button type="button" className="secondary" disabled={busy||Boolean(r.reason)} onClick={()=>act('/references/'+r.id+'/remove',{expectedVersion:r.version},'Local copy removed. The shared record was not deleted.')}>Remove local copy</button></div></div>)}
     {data.removed.length>0&&<h3>Removed from this device</h3>}
-    {data.removed.map(r=><div className="reference-row" key={r.id}><div><strong>{r.title}</strong><small>{r.revision===null?'Restore queued — enable exchange to download.':'Excluded from automatic downloads until you restore it.'}</small></div><button type="button" className="secondary" disabled={busy||r.revision===null} onClick={()=>act('/references/'+r.id+'/restore',{},'Restore queued. Enable exchange or use Exchange now.')}>{r.revision===null?'Restore queued':'Restore reference'}</button></div>)}
+    {data.removed.map(r=><div className="reference-row" key={r.id}><div><strong>{r.title}</strong><small>{r.revision===null?'Restore queued — enable exchange to download.':r.withdrawn?'Shared record was withdrawn. Restoration is possible only if it is republished.':'Excluded from automatic downloads until you restore it.'}</small></div><button type="button" className="secondary" disabled={busy||r.revision===null} onClick={()=>act('/references/'+r.id+'/restore',{},'Restore queued. Enable exchange or use Exchange now.')}>{r.revision===null?'Restore queued':r.withdrawn?'Check shared availability':'Restore reference'}</button></div>)}
     <small>Vector index files may retain preallocated space after removal. Storage is reused as new records arrive; attachment files can be reclaimed immediately when no other evidence needs them.</small>
     {error&&<p className="photo-error" role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
   </section>;

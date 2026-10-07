@@ -3,13 +3,13 @@
 Repository: C:/Users/user/Documents/Qdrant Arch/KhojSetu
 Branch: final-round. Tested feature checkpoints are published after remote-version checks.
 
-Implemented: camera/upload interface, compressed working photos, explicit attachment approval, resumable checksum-verified photo exchange, nonblocking bounded synchronization, durable outbox and receipt reconciliation, opt-in automatic retry, storage accounting/admission budgets, protected-photo cleanup, leaner Edge payloads, embedding reuse and selective site/material downloads with safe history replay, plus protected local-reference removal/restoration.
+Implemented: camera/upload interface, compressed working photos, explicit attachment approval, resumable checksum-verified photo exchange, nonblocking bounded synchronization, durable outbox and receipt reconciliation, opt-in automatic retry, storage accounting/admission budgets, protected-photo cleanup, leaner Edge payloads, embedding reuse and selective site/material downloads with safe history replay, plus protected local-reference removal/restoration and explicit shared withdrawal.
 
-Validation: 22 regression checks passed across targeted runs, using real Qdrant Edge and a disposable real Qdrant Server. TypeScript and production build passed. Browser photo upload/save/display and automatic draining of the test queue were verified. Physical webcam capture still needs a presentation-device check. See docs/VALIDATION.md.
+Validation: 25 regression checks passed across targeted runs, using real Qdrant Edge and a disposable real Qdrant Server. TypeScript and production build passed. Browser photo upload/save/display and automatic draining of the test queue were verified. Physical webcam capture still needs a presentation-device check. See docs/VALIDATION.md.
 
-The original field-07 demo and edited draw.io were not altered by tests. Preview/test services used ports 8002, 8011 and 6334, separate from the ordinary demo. Test processes and container were stopped.
+The original field-07 demo and edited draw.io were not altered by tests. Preview/test services used ports 8002, 8011 and 6334, separate from the ordinary demo. The ordinary app is on port 8000. Disposable test services may be running during validation; stop them after testing.
 
-Remaining: check webcam on the presentation laptop, obtain permitted real images/practitioner feedback, rehearse two-device demo and prepare presentation/backup recording. Curated reference-pack import, shared deletion, image embeddings, native phone deployment and multi-team scaling are explicitly deferred; see FINAL-ROUND-PLAN.md.
+Remaining: check webcam on the presentation laptop, obtain permitted real images/practitioner feedback, rehearse two-device demo and prepare presentation/backup recording. Curated reference-pack import, image embeddings, native phone deployment and multi-team scaling are explicitly deferred; see FINAL-ROUND-PLAN.md.
 
 To resume: open this repository and inspect git status/log; manually open Docker Desktop; run Start-KhojSetu.ps1 -WithExchange and open localhost:8000. Publish only tested checkpoints after checking for teammates' remote changes.
 

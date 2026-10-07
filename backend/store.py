@@ -24,6 +24,8 @@ class Store(ExchangeMixin):
         self.db.executescript('''
             CREATE TABLE IF NOT EXISTS records(id TEXT PRIMARY KEY, body TEXT, vectors TEXT);
             CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY, time REAL, action TEXT, detail TEXT);
+            CREATE TABLE IF NOT EXISTS withdrawal_queue(id TEXT PRIMARY KEY, body TEXT);
+            CREATE TABLE IF NOT EXISTS withdrawn_seen(id TEXT PRIMARY KEY, revision INTEGER);
             CREATE TABLE IF NOT EXISTS evicted(id TEXT PRIMARY KEY, uuid TEXT, title TEXT, revision INTEGER);
             CREATE TABLE IF NOT EXISTS outbox(id TEXT PRIMARY KEY, body TEXT);
             CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT);
@@ -84,6 +86,8 @@ class Store(ExchangeMixin):
                 raise KeyError('Record not found')
             if old and data.get('expectedVersion') != old['version']:
                 raise ValueError('This record changed. Reopen it before saving.')
+            if old and old.get('withdrawalPending') and data.get('approved'):
+                raise ValueError('Withdrawal is pending. Save private notes now, or wait before approving another shared version.')
             if old and old.get('conflict'):
                 raise ValueError('Resolve the exchange conflict before editing this record.')
             digest = data.get('photoHash')
@@ -111,6 +115,8 @@ class Store(ExchangeMixin):
             eligible, reason = policy(r)
             r.update(syncStatus='PENDING' if eligible else 'LOCAL_ONLY', policyReason=reason,
                      memoryStatus='SHARED' if eligible else 'LOCAL', conflict=None)
+            if r.get('withdrawalPending'):
+                r.update(syncStatus='WITHDRAWAL_PENDING',visibility='LOCAL',approved=False)
             self.persist(r)
             self.log('Record saved', f"{r['id']} · revision {r['version']} · {reason}")
             return r
@@ -124,6 +130,72 @@ class Store(ExchangeMixin):
                        for p, score, method in found]
         return {'results': results, 'elapsedMs': round((time.perf_counter()-started)*1000, 1),
                 'engine': 'Qdrant Edge 0.8.0', 'mode': request.mode}
+
+    def request_withdrawal(self, rid, expected_version):
+        if not self.sync_lock.acquire(blocking=False):
+            raise ValueError("Wait for the current exchange to finish before requesting withdrawal.")
+        try:
+            with self.lock:
+                r=self.get(rid)
+                if not r or r["version"]!=expected_version:
+                    raise ValueError("Record changed. Reopen it before requesting withdrawal.")
+                if not r.get("baseRevision"):
+                    raise ValueError("This record has no confirmed shared revision.")
+                if r.get("conflict"):
+                    raise ValueError("Review the shared conflict before requesting withdrawal.")
+                if self.db.execute("SELECT 1 FROM outbox WHERE id=?",(rid,)).fetchone():
+                    raise ValueError("Resolve the uncertain upload acknowledgement by exchanging first.")
+                if r.get("withdrawalPending"):
+                    return r
+                envelope={"id":rid,"baseRevision":r["baseRevision"],"eventId":str(uuid.uuid4())}
+                self.db.execute("INSERT INTO withdrawal_queue VALUES (?,?)",(rid,json.dumps(envelope)))
+                r.update(withdrawalPending=True,visibility="LOCAL",approved=False,
+                         sharePhoto=False,localOwned=True,dirty=True,syncStatus="WITHDRAWAL_PENDING",
+                         version=r["version"]+1)
+                self.persist(r)
+                self.log("Shared withdrawal queued",f"{rid}: local evidence retained; other devices update when connected.")
+                return r
+        finally:
+            self.sync_lock.release()
+
+    def apply_withdrawal(self, remote, revision):
+        rid=remote["id"]
+        seen=self.db.execute("SELECT revision FROM withdrawn_seen WHERE id=?",(rid,)).fetchone()
+        if seen and seen[0]>=revision:
+            self.db.execute("UPDATE evicted SET revision=? WHERE id=? AND revision IS NULL",(revision,rid))
+            self.db.commit()
+            return False
+        local=self.get(rid)
+        if local and local.get("baseRevision",0)>revision:
+            return False
+        if local:
+            # Preserve locally created/edited evidence. Clean imported copies are removed.
+            protected=(local.get("localOwned",True) or local.get("dirty") or local.get("conflict") or
+                       local.get("withdrawalPending") or
+                       (local.get("photoHash") and not local.get("sharePhoto")))
+            if protected:
+                previous_conflict = local.get("conflict")
+                if previous_conflict and previous_conflict.get("record",{}).get("fieldNotes"):
+                    local["fieldNotes"] += "\n\n[Previously conflicting shared observation]\n" + previous_conflict["record"]["fieldNotes"]
+                local.update(baseRevision=revision,visibility="LOCAL",approved=False,
+                             sharePhoto=False,withdrawalPending=False,sharedWithdrawn=True,
+                             syncStatus="LOCAL_ONLY",conflict=None,localOwned=True,dirty=True,
+                             policyReason="Withdrawn from shared archive; local evidence retained.",
+                             version=local["version"]+1)
+                self.persist(local)
+            else:
+                # Reuse durable removal intent so startup also repairs an interrupted deletion.
+                self.db.execute("INSERT OR REPLACE INTO evicted VALUES (?,?,?,?)",
+                                (rid,local["uuid"],local["title"],revision))
+                self.db.commit()
+                self.vectors.remove(local["uuid"])
+                self.db.execute("DELETE FROM records WHERE id=?",(rid,))
+        self.db.execute("INSERT OR REPLACE INTO withdrawn_seen VALUES (?,?)",(rid,revision))
+        self.db.execute("DELETE FROM withdrawal_queue WHERE id=?",(rid,))
+        self.db.execute("UPDATE evicted SET revision=? WHERE id=? AND revision IS NULL",(revision,rid))
+        self.db.commit()
+        self.log("Shared withdrawal received",f"{rid}: revision {revision}; local edits, if any, retained privately.")
+        return True
 
     def cache_reason(self, r):
         if r.get("localOwned", True):
@@ -151,6 +223,8 @@ class Store(ExchangeMixin):
                                     "pinned":r.get("pinned",False),"reason":self.cache_reason(r)})
             removed = [dict(zip(("id","title","revision"),row)) for row in self.db.execute(
                 "SELECT id,title,revision FROM evicted ORDER BY rowid DESC")]
+            for entry in removed:
+                entry["withdrawn"] = bool(self.db.execute("SELECT 1 FROM withdrawn_seen WHERE id=?",(entry["id"],)).fetchone())
             return {"references":entries,"removed":removed}
 
     def pin(self, rid, pinned, expected_version):
@@ -286,6 +360,9 @@ class Store(ExchangeMixin):
                 raise ValueError('Record changed; reload before resolving.')
             conflict = r['conflict']
             remote = conflict['record']
+            if remote.get('withdrawn'):
+                self.apply_withdrawal(remote,conflict['revision'])
+                return self.get(rid)
             if choice == 'SHARED':
                 local_photo = {k:r.get(k) for k in ('photoHash','photoBytes','imageUrl','sharePhoto','photoBackedUp')}
                 preserve = not r.get('sharePhoto')

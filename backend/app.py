@@ -47,7 +47,7 @@ def state():
                 'fieldMode': s.setting('fieldMode', 'true') == 'true',
                 'connection': s.setting('connection', 'Not checked'),
                 'lastSync': s.setting('lastSync'),
-                'pending': sum(r['syncStatus'] == 'PENDING' for r in records),
+                'pending': sum(r['syncStatus'] in ('PENDING','WITHDRAWAL_PENDING') for r in records),
                 'conflicts': sum(bool(r.get('conflict')) for r in records),
                 'syncActive': s.setting('syncActive','false') == 'true',
                 'autoSync': s.setting('autoSync','false') == 'true',
@@ -163,6 +163,13 @@ class ReferenceAction(BaseModel):
 
 class PinAction(ReferenceAction):
     pinned: bool
+
+@app.post('/api/records/{rid}/withdraw')
+def withdraw_record(rid: str, data: ReferenceAction):
+    try:
+        return store().request_withdrawal(rid,data.expectedVersion)
+    except ValueError as exc:
+        raise HTTPException(409,str(exc))
 
 @app.get('/api/references')
 def references():

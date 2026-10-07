@@ -22,7 +22,10 @@ lock = RLock()
 def apply_row(row):
     seq, revision, body, vectors = row
     record, vec = json.loads(body), json.loads(vectors)
-    qdrant.upsert(COLLECTION, points=[models.PointStruct(
+    if record.get("withdrawn"):
+        qdrant.delete(COLLECTION, points_selector=models.PointIdsList(points=[record["uuid"]]), wait=True)
+    else:
+        qdrant.upsert(COLLECTION, points=[models.PointStruct(
         id=record["uuid"], vector={"dense":vec["dense"],"lexical":models.SparseVector(**vec["lexical"])},
         payload={**record,"cloudRevision":revision})], wait=True)
     db.execute("UPDATE changes SET applied=1 WHERE seq=?", (seq,))
@@ -47,6 +50,7 @@ async def lifespan(app):
         event TEXT UNIQUE, id TEXT, revision INTEGER, body TEXT, vectors TEXT, applied INTEGER DEFAULT 1)""")
     if "applied" not in {row[1] for row in db.execute("PRAGMA table_info(changes)")}:
         db.execute("ALTER TABLE changes ADD COLUMN applied INTEGER DEFAULT 1")
+    db.execute("CREATE INDEX IF NOT EXISTS changes_by_record ON changes(id,seq DESC)")
     db.commit()
     qdrant = QdrantClient(url=os.getenv("QDRANT_URL","http://127.0.0.1:6333"),
                          api_key=os.getenv("QDRANT_API_KEY") or None, timeout=8)
@@ -103,9 +107,11 @@ def exchange(req: Exchange):
     if not policy(req.record)[0]:
         raise HTTPException(422,"Record is not approved for sharing")
     # Device-local fields never become shared payloads, even for a manually crafted request.
-    record = {k:v for k,v in req.record.items() if k not in ("imageUrl","conflict","photoBackedUp","pinned","localOwned")}
+    record = {k:v for k,v in req.record.items() if k not in ("imageUrl","conflict","photoBackedUp","pinned","localOwned","sharedWithdrawn","withdrawalPending")}
     if not record.get("sharePhoto"):
         record.update(photoHash=None,photoBytes=0)
+    if req.record.get("withdrawn"):
+        raise HTTPException(422,"Use the explicit withdrawal endpoint.")
     with lock:
         repair_pending()
         seen = db.execute("SELECT revision,id,body,vectors FROM changes WHERE event=?", (req.eventId,)).fetchone()
@@ -126,6 +132,45 @@ def exchange(req: Exchange):
         return {"revision":revision}
 
 
+class Withdrawal(BaseModel):
+    id: str = Field(min_length=1,max_length=100)
+    baseRevision: int = Field(ge=1)
+    eventId: str = Field(min_length=1,max_length=100)
+
+
+@app.post("/withdraw", dependencies=[Depends(authorize)])
+def withdraw(req: Withdrawal):
+    with lock:
+        repair_pending()
+        seen = db.execute("SELECT revision,id,body FROM changes WHERE event=?",(req.eventId,)).fetchone()
+        if seen:
+            if seen[1]!=req.id or not json.loads(seen[2]).get("withdrawn"):
+                raise HTTPException(422,"Event ID already belongs to another operation.")
+            return {"revision":seen[0]}
+        latest = db.execute("SELECT revision,body FROM changes WHERE id=? ORDER BY seq DESC LIMIT 1",(req.id,)).fetchone()
+        if not latest:
+            raise HTTPException(404,"No shared record to withdraw.")
+        record = json.loads(latest[1])
+        if req.baseRevision!=latest[0]:
+            raise HTTPException(409,{"revision":latest[0],"record":record})
+        revision=latest[0]+1
+        tombstone={"id":req.id,"uuid":record["uuid"],"withdrawn":True}
+        cur=db.execute("INSERT INTO changes(event,id,revision,body,vectors,applied) VALUES (?,?,?,?,?,0)",
+                       (req.eventId,req.id,revision,json.dumps(tombstone),"{}"))
+        db.commit()
+        apply_row((cur.lastrowid,revision,json.dumps(tombstone),"{}"))
+        return {"revision":revision}
+
+
+def visible_change(row):
+    """Do not serve historical content of a record withdrawn from the active archive."""
+    record=json.loads(row[2])
+    latest=db.execute("SELECT revision,body FROM changes WHERE id=? ORDER BY seq DESC LIMIT 1",(record["id"],)).fetchone()
+    if latest and json.loads(latest[1]).get("withdrawn"):
+        return {"seq":row[0],"revision":latest[0],"record":json.loads(latest[1]),"vectors":{}}
+    return {"seq":row[0],"revision":row[1],"record":record,"vectors":json.loads(row[3])}
+
+
 @app.get("/receipts/{event_id}", dependencies=[Depends(authorize)])
 def receipt(event_id: str):
     with lock:
@@ -143,7 +188,7 @@ def changes(after: int = Query(0,ge=0), limit: int = Query(100,ge=1,le=100),
                           (after,limit+1)).fetchall()
         page = {"changes":[],"cursor":after,"hasMore":False}
         for row in rows[:limit]:
-            change = {"seq":row[0],"revision":row[1],"record":json.loads(row[2]),"vectors":json.loads(row[3])}
+            change = visible_change(row)
             candidate = {"changes":page["changes"]+[change],"cursor":row[0],"hasMore":True}
             size = len(encoded(candidate))
             if size + 128 > max_bytes:
@@ -182,14 +227,14 @@ def selected_changes(selection: ChangeSelection):
             if len(page["changes"]) >= selection.limit:
                 page["hasMore"] = True
                 break
-            record = json.loads(row[2])
+            change = visible_change(row)
+            record = change["record"]
             matches = ((not selection.site or record.get("site","").casefold()==selection.site.casefold()) and
                        (not selection.material or record.get("material","").casefold()==selection.material.casefold()))
             if record["id"] in excluded or (record["id"] not in known and not matches):
                 page["cursor"] = row[0]
                 page["skipped"] += 1
                 continue
-            change = {"seq":row[0],"revision":row[1],"record":record,"vectors":json.loads(row[3])}
             candidate = {**page,"changes":page["changes"]+[change],"cursor":row[0],"hasMore":True}
             size = len(encoded(candidate))
             if size + 128 > selection.max_bytes:

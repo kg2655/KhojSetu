@@ -390,3 +390,70 @@ def test_cache_interrupted_removal_is_recovered(tmp_path,monkeypatch):
         assert not second.search(SearchInput(query="painted ceramic"))["results"]
         assert second.cache_catalogue()["removed"][0]["id"]==r["id"]
     finally: second.close()
+
+def test_gateway_withdrawal_propagates_but_preserves_local_edits(unit,gateway,monkeypatch,tmp_path):
+    public=unit.save(record())
+    route_gateway(monkeypatch,gateway)
+    unit.sync("http://test","test-secret")
+    clean=Store(tmp_path/"clean",VectorMemory(tmp_path/"clean/edge",ROOT/".models"),"CLEAN")
+    edited=Store(tmp_path/"edited",VectorMemory(tmp_path/"edited/edge",ROOT/".models"),"EDITED")
+    try:
+        for s in (clean,edited):
+            s.set_setting("fieldMode","false");s.sync("http://test","test-secret")
+        local=edited.get(public["id"])
+        edited.save({**local,"fieldNotes":"Independent local observation to preserve.","approved":False,
+                     "expectedVersion":local["version"]},public["id"])
+        original=unit.get(public["id"])
+        unit.request_withdrawal(public["id"],original["version"])
+        outcome=unit.sync("http://test","test-secret")
+        assert outcome["withdrawals"]>=1
+        assert unit.get(public["id"])["sharedWithdrawn"]
+        assert unit.get(public["id"])["syncStatus"]=="LOCAL_ONLY"
+        for s in (clean,edited): s.sync("http://test","test-secret")
+        assert clean.get(public["id"]) is None
+        assert not clean.search(SearchInput(query="painted ceramic"))["results"]
+        assert edited.get(public["id"])["fieldNotes"]=="Independent local observation to preserve."
+        assert edited.get(public["id"])["syncStatus"]=="LOCAL_ONLY"
+        response=gateway.get("/changes",headers={"Authorization":"Bearer test-secret"}).json()
+        assert all(c["record"].get("withdrawn") for c in response["changes"])
+        assert all("fieldNotes" not in c["record"] for c in response["changes"])
+        from . import cloud
+        assert not cloud.qdrant.retrieve(cloud.COLLECTION,[public["uuid"]])
+    finally: clean.close();edited.close()
+
+def test_gateway_withdrawal_rejects_stale_revision(unit,gateway,monkeypatch):
+    r=unit.save(record())
+    route_gateway(monkeypatch,gateway)
+    unit.sync("http://test","test-secret")
+    from . import cloud
+    current=json.loads(cloud.db.execute("SELECT body FROM changes ORDER BY seq DESC LIMIT 1").fetchone()[0])
+    import uuid
+    payload={"record":{**current,"fieldNotes":"Newer shared evidence.","eventId":str(uuid.uuid4())},
+             "vectors":json.loads(cloud.db.execute("SELECT vectors FROM changes LIMIT 1").fetchone()[0]),
+             "baseRevision":1,"eventId":str(uuid.uuid4())}
+    assert gateway.post("/exchange",json=payload,headers={"Authorization":"Bearer test-secret"}).status_code==200
+    unit.request_withdrawal(r["id"],unit.get(r["id"])["version"])
+    unit.sync("http://test","test-secret")
+    assert unit.get(r["id"])["conflict"]["revision"]==2
+    assert cloud.qdrant.retrieve(cloud.COLLECTION,[r["uuid"]])
+
+def test_gateway_withdrawal_lost_ack_is_idempotent(unit,gateway,monkeypatch):
+    r=unit.save(record())
+    route_gateway(monkeypatch,gateway)
+    unit.sync("http://test","test-secret")
+    unit.request_withdrawal(r["id"],unit.get(r["id"])["version"])
+    lost=[False]
+    def handler(request):
+        response=gateway.request(request.method,str(request.url).replace("http://test",""),
+                                 content=request.content,headers=dict(request.headers))
+        if request.url.path=="/withdraw" and not lost[0]:
+            lost[0]=True
+            raise httpx.ReadError("Withdrawal acknowledgement lost")
+        return response
+    mock_client(monkeypatch,handler)
+    with pytest.raises(ConnectionError): unit.sync("http://test","test-secret")
+    assert unit.get(r["id"])["withdrawalPending"]
+    unit.sync("http://test","test-secret")
+    assert unit.get(r["id"])["sharedWithdrawn"]
+    from . import cloud
+    assert cloud.db.execute("SELECT COUNT(*) FROM changes").fetchone()[0]==2

@@ -9,6 +9,7 @@ Updated 7 October 2026. Presentation: 11 October.
 - Camera/upload controls, compressed working photos, EXIF removal and content-based deduplication.
 - Explicit photo-sharing approval and resumable, checksum-verified attachment transfers.
 - Selective site/material downloads with safe history replay and updates for already-held records.
+- Explicit shared withdrawal with version checks, tombstone propagation and preservation of local evidence.
 - Pinning, safe removal and explicit restoration of unchanged downloaded references.
 - Device storage accounting, admission budgets and protected-evidence cleanup.
 - Leaner Edge payloads; no re-embedding for policy-only edits; no dense embedding for lexical-only queries.
@@ -24,7 +25,7 @@ Updated 7 October 2026. Presentation: 11 October.
 
 ## Explicitly deferred
 - Curated reference-pack import.
-- Shared deletion/tombstone propagation.
+- Secure erasure of revision history, retained attachments and exported copies.
 - Image embeddings and generative archaeological answers.
 - Native phone deployment and secure phone-to-laptop deployment.
 - Multi-team authorization and distributed gateway scaling.

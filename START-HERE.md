@@ -10,7 +10,7 @@ The project folder is `C:\Users\user\Documents\Qdrant Arch\KhojSetu`.
 | Exchange gateway | Checks revisions and moves approved records between devices and Qdrant Server | http://localhost:8010/docs |
 | Qdrant Server | Stores shared vectors; runs inside Docker | http://localhost:6333/dashboard |
 
-`localhost` means **this laptop**. None of these addresses publish your project on the internet. All three ports bind to loopback. Docker is a way to run the server with its dependencies packaged together. You do not need to sign in to Docker, Qdrant, Hugging Face, Google or OpenAI for this local setup.
+`localhost` means **this laptop**. None of these addresses publish your project on the internet. All three ports bind to loopback. Docker is a way to run the server with its dependencies packaged together. No external service account is required for this local setup.
 
 Qdrant **Edge** and Qdrant **Server** are different. Edge runs inside the Python field app and stores searchable vectors in `.data/field-07/edge`. Server runs in Docker and holds shared knowledge. The server dashboard does not show your private Edge memory.
 

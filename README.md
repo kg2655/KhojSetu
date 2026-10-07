@@ -41,6 +41,7 @@ Potential users include excavation teams, research programmes and archaeological
 | Shared storage | Real Qdrant Server in Docker, accessed through a Python exchange gateway |
 | Bidirectional changes | Durable outbox, version-safe acknowledgements, bounded uploads/downloads and opt-in background retry |
 | Photo exchange | Explicit approval, resumable 64 KiB chunks and SHA-256 integrity verification |
+| Shared withdrawal | Explicit version-checked request, durable tombstone and offline propagation; local edits retained privately |
 | Conflict review | Keep local, accept shared, or retain both notes |
 | Evidence assistant | Extracts original retrieved notes with record IDs; no external LLM |
 | Interface | Field station, archive, search, record form, knowledge exchange and activity |
@@ -68,7 +69,7 @@ The local API and cached model run on the laptop. Edge performs the actual vecto
 
 ## Run on Windows
 
-Requirements: Python **3.12**, Node.js **22.14+**, and Docker Desktop for shared-server exchange. No Qdrant account, Gemini key or paid inference API is required for the local setup.
+Requirements: Python **3.12**, Node.js **22.14+**, and Docker Desktop for shared-server exchange. No Qdrant account or paid inference API is required for the local setup.
 
 ```powershell
 git clone https://github.com/kg2655/KhojSetu.git
@@ -107,7 +108,7 @@ Closing browser tabs does not stop the backend. Stopping services does not erase
 
 ## Validation
 
-The updated implementation has passed TypeScript checking, a production frontend build and 22 regression checks using real Qdrant Edge; gateway checks use a disposable real Qdrant Server. Coverage includes the original filter/privacy/conflict/restart cases plus stalled uploads, lost acknowledgements, revoked sharing, storage admission, photo compression, chunk retries, integrity checks, authentication and interrupted gateway writes. Browser verification covered photo upload and saving; physical webcam capture remains a device-specific preflight check.
+The updated implementation has passed TypeScript checking, a production frontend build and 25 regression checks using real Qdrant Edge; gateway checks use a disposable real Qdrant Server. Coverage includes the original filter/privacy/conflict/restart cases plus stalled uploads, lost acknowledgements, revoked sharing, storage admission, photo compression, chunk retries, integrity checks, authentication and interrupted gateway writes. Browser verification covered photo upload and saving; physical webcam capture remains a device-specific preflight check.
 
 See [verification instructions](docs/VALIDATION.md) for isolated test setup. Test data must not be mixed with the expedition used for presentation.
 
@@ -142,7 +143,7 @@ Cleanup only removes unattached files older than 24 hours. It never automaticall
 - The assistant is extractive, not a generative archaeological expert. Similarity scores are not confidence in historical facts.
 - Image similarity search and full-resolution original-photo backup are not implemented.
 - The current deployment is single-team localhost with one gateway worker. Optional bearer-token authentication is supported; remote hosting also requires HTTPS. Multi-team authorization and distributed scaling require further work.
-- Making an already-shared record local prevents future eligible uploads; it does not retract earlier shared copies. Deletion propagation is not implemented.
+- Visibility changes alone do not retract shared records. Use the explicit withdrawal action to remove the active shared record and propagate that state on later exchanges. Locally created/edited evidence is retained privately. Server audit history, retained attachment files and exported copies are not erased; this is not secure erasure.
 - Real archaeological data and practitioner evaluation are needed to establish domain quality.
 - The laptop camera must be checked on the presentation device. A phone accessing a laptop-hosted page would still depend on that laptop; native phone Edge execution is not part of this release.
 
