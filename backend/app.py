@@ -207,6 +207,24 @@ def cleanup():
     return store().cleanup_photos()
 
 
+@app.post('/api/reference-packs')
+async def upload_reference_pack(request: Request):
+    from .packs import MAX_PACK, parse_pack, import_pack
+    body = bytearray()
+    async for chunk in request.stream():
+        if len(body) + len(chunk) > MAX_PACK:
+            raise HTTPException(413, 'Reference packs must be at most 1 MiB.')
+        body.extend(chunk)
+    try:
+        pack = parse_pack(bytes(body))
+    except ValueError:
+        raise HTTPException(422, 'Invalid reference pack. Check schemaVersion, unique IDs, source, license, evidenceType and 1–100 records.')
+    try:
+        return await run_in_threadpool(import_pack, store(), pack)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
 @app.post('/api/photos')
 async def upload_photo(request: Request):
     body = bytearray()

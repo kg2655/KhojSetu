@@ -23,7 +23,7 @@ def sparse(text):
 
 def text_for(r):
     return ' '.join(str(r.get(k, '')) for k in
-        ['title', 'fieldNotes', 'artifactType', 'material', 'site', 'grid', 'layer']) + ' ' + ' '.join(r.get('tags', []))
+        (['title', 'fieldNotes', 'artifactType', 'material', 'site'] + ([] if r.get('referenceSource') else ['grid', 'layer']))) + ' ' + ' '.join(r.get('tags', []))
 
 
 class VectorMemory:
@@ -44,7 +44,7 @@ class VectorMemory:
         self.shard.update(UpdateOperation.upsert_points([Point(
             id=record['uuid'], vector={'dense': vectors['dense'],
             'lexical': SparseVector(**vectors['lexical'])},
-            payload={k:record.get(k) for k in ('id','layer','material','site','grid')})]))
+            payload={k:('' if record.get('referenceSource') and k in ('layer','grid') else record.get(k)) for k in ('id','layer','material','site','grid')})]))
         return vectors
 
     def search(self, query, mode, filters, limit):

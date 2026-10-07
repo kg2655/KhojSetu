@@ -5,7 +5,7 @@ Use a disposable server; do not run test writes against the expedition used for 
 ## Offline checks
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest backend/test_final_round.py -q -k "not gateway"
+.\.venv\Scripts\python.exe -m pytest backend/test_final_round.py backend/test_packs.py -q -k "not gateway"
 npm run lint
 npm run build
 ```
@@ -18,7 +18,7 @@ Open Docker Desktop, then start a disposable server on an unused port:
 
 ```powershell
 docker run -d --rm --name khojsetu-final-test -p 127.0.0.1:6334:6333 qdrant/qdrant:v1.19.1
-.\.venv\Scripts\python.exe -m pytest backend/test_final_round.py -q
+.\.venv\Scripts\python.exe -m pytest backend/test_final_round.py backend/test_packs.py -q
 docker stop khojsetu-final-test
 ```
 
@@ -28,10 +28,11 @@ The original five checks remain in backend/test_integration.py. To run those sep
 
 ## Verified on 7 October 2026
 
-- 24 final-round checks passed in the latest full run; the original five integration checks passed earlier (29 checks total).
+- 29 final-round/reference-pack checks passed in the latest full run; the original five integration checks passed earlier (34 checks total).
 - Selective-download tests cover out-of-scope revisions, safe widening/narrowing, blocking selection changes during in-flight exchange, and not disclosing never-shared private IDs.
 - Reference-cache tests verify own/pinned/edited-record protection, removal from real Edge search, exclusion from later downloads, explicit restoration and interrupted-removal recovery.
 - Withdrawal tests verify active Qdrant removal, suppression of withdrawn history in change responses, preservation of local edits, stale-revision conflicts and idempotent retry after a lost acknowledgement.
+- Reference-pack tests cover API/file limits, duplicate IDs, provenance, offline search, layer-filter exclusion, preservation of edits, partial storage-limited retry and exchange exclusion. The importer controls were also inspected in the browser.
 - Republish recovery tests verify restoration across withdrawal history and device restart, plus receipt reconciliation after a lost republish acknowledgement without duplicate uploads.
 - TypeScript checking and production build passed.
 - Browser upload: a labelled 800 × 600 test image was compressed from about 13 KiB to 9 KiB, saved, and displayed in the record and archive. It was not presented as archaeological evidence.

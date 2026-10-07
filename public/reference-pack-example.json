@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "khojsetu-format-example-v1",
+  "title": "Synthetic reference format example",
+  "source": "KhojSetu demonstration fixture — not archaeological evidence",
+  "license": "Team-authored synthetic demonstration text; reusable for testing",
+  "evidenceType": "SYNTHETIC",
+  "records": [
+    {
+      "id": "painted-fragment",
+      "title": "Illustrative painted ceramic fragment",
+      "fieldNotes": "Synthetic reference describes a red ceramic fragment with triangular painted markings. It does not establish a historical period, provenance or identification.",
+      "material": "Ceramic",
+      "tags": [
+        "synthetic",
+        "format-example"
+      ]
+    }
+  ]
+}

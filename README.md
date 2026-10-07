@@ -16,6 +16,7 @@ A researcher records a find, searches related observations on the field laptop w
 - [Five-minute demonstration](DEMO.md)
 - [Setup & Running Locally](START-HERE.md)
 - [Architecture, resource budgets and tradeoffs](docs/ARCHITECTURE.md)
+- [Preparing small offline reference packs](docs/REFERENCE-PACKS.md)
 
 ## Why this challenge, and why archaeology?
 
@@ -34,6 +35,7 @@ Potential users include excavation teams, research programmes and archaeological
 | Hybrid retrieval | Dense cosine and lexical sparse search in Edge; application combines rankings using reciprocal-rank fusion |
 | Context filtering | Layer and material filters |
 | Field photographs | Camera or upload; metadata-stripped JPEG working copies, displayed in records and search results |
+| Offline reference packs | Import up to 100 sourced text references / 1 MiB; local-only by default, resumable within storage budget, existing edits preserved |
 | Selective downloads | Choose a site/material for new findings; existing local records keep receiving revisions |
 | Device storage | Configurable admission budget, usage breakdown, protected evidence, unused-photo cleanup and removable/restorable downloaded references |
 | Persistent field records | SQLite journal, local versions and durable pending state |

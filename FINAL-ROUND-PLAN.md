@@ -14,6 +14,7 @@ Updated 7 October 2026. Presentation: 11 October.
 - Device storage accounting, admission budgets and protected-evidence cleanup.
 - Leaner Edge payloads; no re-embedding for policy-only edits; no dense embedding for lexical-only queries.
 - Recoverable gateway writes and isolated regression tests.
+- Bounded offline reference-pack import with source/permission labels, duplicate protection and storage-limited retry.
 - Updated evaluator-facing architecture and limitations.
 
 ## Remaining before the presentation
@@ -24,7 +25,6 @@ Updated 7 October 2026. Presentation: 11 October.
 - Freeze features on 10 October.
 
 ## Explicitly deferred
-- Curated reference-pack import.
 - Secure erasure of revision history, retained attachments and exported copies.
 - Image embeddings and generative archaeological answers.
 - Native phone deployment and secure phone-to-laptop deployment.
