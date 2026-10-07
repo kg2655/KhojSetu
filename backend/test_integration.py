@@ -79,7 +79,7 @@ def test_real_server_two_devices_conflict_and_idempotency(units):
     assert b.get(unapproved['id']) is None
     # Independently inspect Qdrant Server, beyond the gateway's SQLite journal.
     client = QdrantClient(url=os.getenv('QDRANT_URL','http://127.0.0.1:6333'))
-    points = client.retrieve('khojsetu_shared_v1', [public['uuid'], private['uuid']], with_vectors=True)
+    points = client.retrieve(os.getenv('KHOJ_COLLECTION', 'khojsetu_shared_v1'), [public['uuid'], private['uuid']], with_vectors=True)
     assert len(points) == 1
     assert len(points[0].vector['dense']) == 384
     client.close()

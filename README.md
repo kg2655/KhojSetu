@@ -15,6 +15,7 @@ A researcher records a find, searches related observations on the field laptop w
 - [Interactive workflow explainer](public/pitch.html) — download/open locally, or visit `/pitch.html` while running the app. GitHub's file view does not execute HTML.
 - [Five-minute demonstration](DEMO.md)
 - [Setup & Running Locally](START-HERE.md)
+- [Architecture, resource budgets and tradeoffs](docs/ARCHITECTURE.md)
 
 ## Why this challenge, and why archaeology?
 
@@ -32,10 +33,13 @@ Potential users include excavation teams, research programmes and archaeological
 | Local embeddings | Cached MiniLM ONNX model via FastEmbed; 384-dimensional dense vectors |
 | Hybrid retrieval | Dense cosine and lexical sparse search in Edge; application combines rankings using reciprocal-rank fusion |
 | Context filtering | Layer and material filters |
+| Field photographs | Camera or upload; metadata-stripped JPEG working copies, displayed in records and search results |
+| Device storage | Configurable admission budget, usage breakdown, protected attached evidence and unused-photo cleanup |
 | Persistent field records | SQLite journal, local versions and durable pending state |
 | Selective exchange | Sensitivity, researcher approval, visibility and priority rules; limited-link upload prioritization |
 | Shared storage | Real Qdrant Server in Docker, accessed through a Python exchange gateway |
-| Bidirectional changes | Approved uploads, incremental shared downloads, retry IDs and revision checks |
+| Bidirectional changes | Durable outbox, version-safe acknowledgements, bounded uploads/downloads and opt-in background retry |
+| Photo exchange | Explicit approval, resumable 64 KiB chunks and SHA-256 integrity verification |
 | Conflict review | Keep local, accept shared, or retain both notes |
 | Evidence assistant | Extracts original retrieved notes with record IDs; no external LLM |
 | Interface | Field station, archive, search, record form, knowledge exchange and activity |
@@ -102,31 +106,52 @@ Closing browser tabs does not stop the backend. Stopping services does not erase
 
 ## Validation
 
-The implementation has passed TypeScript checking, a production frontend build, five integration tests using real Qdrant Edge and a live Qdrant Server, and a browser search check. Integration tests cover filters, sharing policy, failed exchange, two-device conflict/merge, and restart recovery.
+The updated implementation has passed TypeScript checking, a production frontend build and 16 regression checks using real Qdrant Edge; gateway checks use a disposable real Qdrant Server. Coverage includes the original filter/privacy/conflict/restart cases plus stalled uploads, lost acknowledgements, revoked sharing, storage admission, photo compression, chunk retries, integrity checks, authentication and interrupted gateway writes. Browser verification covered photo upload and saving; physical webcam capture remains a device-specific preflight check.
+
+See [verification instructions](docs/VALIDATION.md) for isolated test setup. Test data must not be mixed with the expedition used for presentation.
 
 ```powershell
 npm run lint
 npm run build
-.\.venv\Scripts\python.exe -m pytest backend/test_integration.py -q
+.\.venv\Scripts\python.exe -m pytest backend/test_final_round.py -q
 ```
 
-Start the gateway and Qdrant Server before the integration suite. Those tests create synthetic shared records. Search timings on 40 records are small-data measurements, not production benchmarks.
+The new suite expects a disposable Qdrant Server on port 6334; it creates and removes its own test collections. The original suite additionally requires an isolated running gateway. Small-demo timings are not production benchmarks.
+
+## Resource-aware operation
+
+Under **System & activity**, set the field-data budget (default **512 MiB**) and each direction's transfer allowance (default **256 KiB per cycle**). The model cache is shown separately. Local recording and search continue while network requests are pending. Background exchange is opt-in and remains paused in field mode.
+
+Each cycle attempts at most 20 record uploads and receives at most 20 changes. Photographs use resumable chunks of at most 64 KiB. Transfer counters cover application change bodies and photo chunks, not HTTP/TLS overhead, health checks or acknowledgements. These are per-cycle limits, not daily data caps.
+
+The storage budget is an admission control, not a filesystem quota. Qdrant's allocated files, database journals and temporary operations can grow in steps. Measurements on the development laptop found about 132 MiB of logical files for an empty Edge shard; the cached embedding model used about 87 MiB separately. These are not RAM figures or universal minimum hardware requirements.
+
+## Photographs
+
+Choose **Use camera** or **Upload photo** in the recording form. Browser camera access requires permission and a supported secure context such as localhost or HTTPS. Uploaded JPEG/PNG/WebP files are limited to 10 MiB and 24 megapixels; working copies are resized to at most 1600 pixels, encoded as JPEG, and stripped of EXIF metadata. Original files are unchanged and must be preserved separately if needed as research evidence.
+
+A photo stays local unless **Also exchange this compressed photo** is selected and the record passes the approval/privacy policy. Metadata can arrive before its photo; the interface distinguishes record synchronization from verified photo transfer. Search uses written descriptions, not image embeddings.
+
+Cleanup only removes unattached files older than 24 hours. It never automatically removes a photograph attached to a record or needed by a pending upload/conflict.
 
 ## Scope and remaining work
 
-- Exchange is manually triggered; automatic reconnect/background exchange is future work.
-- Limited-link mode defers lower-priority uploads; it does not cap downloaded changes.
+- Automatic exchange polls with bounded retries; it is not an operating-system connectivity event subscription.
+- Shared changes are downloaded incrementally within budgets. Expedition-specific reference packs and eviction of downloaded records are not implemented.
 - The assistant is extractive, not a generative archaeological expert. Similarity scores are not confidence in historical facts.
-- The demo drawings are illustrations. Image retrieval and attachment synchronization are not implemented.
-- The current deployment is single-team localhost; the gateway runs as one worker. Production authentication, tenancy, deletion propagation and distributed gateway scaling require further work.
-- Making an already-shared record local does not retract earlier shared copies.
-- Real archaeological data and expert evaluation are needed to establish domain quality.
+- Image similarity search and full-resolution original-photo backup are not implemented.
+- The current deployment is single-team localhost with one gateway worker. Optional bearer-token authentication is supported; remote hosting also requires HTTPS. Multi-team authorization and distributed scaling require further work.
+- Making an already-shared record local prevents future eligible uploads; it does not retract earlier shared copies. Deletion propagation is not implemented.
+- Real archaeological data and practitioner evaluation are needed to establish domain quality.
+- The laptop camera must be checked on the presentation device. A phone accessing a laptop-hosted page would still depend on that laptop; native phone Edge execution is not part of this release.
 
 ## Repository map
 
 - `src/Workstation.tsx`: active interface selected by `src/main.tsx`.
 - `backend/app.py`: local API; `vectors.py`: Edge and embeddings; `store.py`: records and exchange; `models.py`: policy.
 - `backend/cloud.py`: shared gateway using Qdrant Server.
+- `backend/exchange.py` and `worker.py`: bounded transfer, retry and background scheduling.
+- `backend/photos.py`: compressed working copies, hashing and resumable chunks.
 - `compose.yaml`: local Qdrant Server container.
 - `public/`: static assets and standalone workflow explainer.
 - `docs/media/`: README animation.

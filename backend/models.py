@@ -22,6 +22,10 @@ class RecordInput(BaseModel):
     tags: list[str] = Field(default_factory=list, max_length=30)
     illustrationType: str = 'ceramic_painted'
     imageUrl: str | None = Field(default=None, max_length=2000000)
+    photoHash: str | None = Field(default=None, pattern=r'^[a-f0-9]{64}$')
+    photoBytes: int = Field(default=0, ge=0, le=2*1024*1024)
+    sharePhoto: bool = False
+    pinned: bool = False
     expectedVersion: int | None = None
 
 

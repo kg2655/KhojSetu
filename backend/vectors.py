@@ -43,7 +43,8 @@ class VectorMemory:
         vectors = vectors or self.encode(text_for(record))
         self.shard.update(UpdateOperation.upsert_points([Point(
             id=record['uuid'], vector={'dense': vectors['dense'],
-            'lexical': SparseVector(**vectors['lexical'])}, payload=record)]))
+            'lexical': SparseVector(**vectors['lexical'])},
+            payload={k:record.get(k) for k in ('id','layer','material','site','grid')})]))
         return vectors
 
     def search(self, query, mode, filters, limit):
@@ -52,7 +53,7 @@ class VectorMemory:
         if not query.strip():
             return [(p, None, 'Filtered field record') for p in self.shard.query(
                 QueryRequest(limit=limit, filter=filt, with_payload=True))]
-        vectors = self.encode(query)
+        vectors = ({'lexical': sparse(query)} if mode == 'EXACT' else self.encode(query))
         rankings = []
         if mode != 'EXACT':
             dense = self.shard.query(QueryRequest(query=Query.Nearest(vectors['dense'], using='dense'),

@@ -3,12 +3,16 @@ import os
 from pathlib import Path
 from contextlib import asynccontextmanager
 from typing import Literal
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse
+from starlette.concurrency import run_in_threadpool
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from .models import RecordInput, SearchInput, policy
 from .vectors import VectorMemory, MODEL
 from .store import Store
+from .worker import SyncWorker
+from .photos import photo_path, directory_bytes, MAX_INPUT
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -18,7 +22,11 @@ async def lifespan(app):
     directory = Path(os.getenv('KHOJ_DATA', ROOT / '.data/field-07'))
     vectors = VectorMemory(directory / 'edge', ROOT / '.models', offline=True)
     app.state.store = Store(directory, vectors, os.getenv('KHOJ_DEVICE', 'FIELD-07'))
+    app.state.model_bytes = directory_bytes(ROOT / '.models')
+    app.state.worker = SyncWorker(app.state.store)
+    app.state.worker.start()
     yield
+    await run_in_threadpool(app.state.worker.close)
     app.state.store.close()
 
 
@@ -40,12 +48,21 @@ def state():
                 'connection': s.setting('connection', 'Not checked'),
                 'lastSync': s.setting('lastSync'),
                 'pending': sum(r['syncStatus'] == 'PENDING' for r in records),
-                'conflicts': sum(bool(r.get('conflict')) for r in records)}
+                'conflicts': sum(bool(r.get('conflict')) for r in records),
+                'syncActive': s.setting('syncActive','false') == 'true',
+                'autoSync': s.setting('autoSync','false') == 'true',
+                'metered': s.setting('metered','false') == 'true',
+                'transferKiB': int(s.setting('transferKiB','256')),
+                'nextSync': s.setting('nextSync'),
+                'lastExchange': json.loads(s.setting('lastExchange','null'))}
 
 
 @app.post('/api/records')
 def create(data: RecordInput):
-    return store().save(data.model_dump())
+    try:
+        return store().save(data.model_dump())
+    except ValueError as e:
+        raise HTTPException(409, str(e))
 
 
 @app.put('/api/records/{rid}')
@@ -76,16 +93,21 @@ def assistant(data: SearchInput):
 
 
 class Settings(BaseModel):
-    fieldMode: bool
+    fieldMode: bool | None = None
+    autoSync: bool | None = None
+    metered: bool | None = None
+    transferKiB: int | None = Field(default=None, ge=64, le=8192)
+    storageMiB: int | None = Field(default=None, ge=192, le=4096)
 
 
 @app.post('/api/settings')
 def settings(data: Settings):
     with store().lock:
-        store().set_setting('fieldMode', str(data.fieldMode).lower())
-        store().log('Field mode' if data.fieldMode else 'Exchange enabled',
-                    'Local search remains available. Server connectivity is checked during exchange.')
+        for key, value in data.model_dump(exclude_none=True).items():
+            store().set_setting(key, str(value).lower() if isinstance(value, bool) else value)
+        store().log('Device settings updated', 'Storage and exchange preferences saved.')
     return state()
+
 
 
 class SyncRequest(BaseModel):
@@ -127,6 +149,42 @@ def seed():
             store().save(data)
         store().log('Synthetic dataset loaded', 'Illustrative records only; these are not real archaeological evidence.')
     return state()
+
+
+@app.get('/api/storage')
+def storage():
+    with store().lock:
+        return {**store().storage(), 'modelBytes': app.state.model_bytes}
+
+
+@app.post('/api/storage/cleanup')
+def cleanup():
+    return store().cleanup_photos()
+
+
+@app.post('/api/photos')
+async def upload_photo(request: Request):
+    body = bytearray()
+    async for chunk in request.stream():
+        body.extend(chunk)
+        if len(body) > MAX_INPUT:
+            raise HTTPException(413, 'Choose an image smaller than 10 MiB.')
+    try:
+        return await run_in_threadpool(store().add_photo, bytes(body))
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+
+
+@app.get('/api/photos/{digest}')
+def photo(digest: str):
+    try:
+        path = photo_path(store().photo_dir, digest)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+    if not path.exists():
+        raise HTTPException(404, 'Photo is not available on this device yet.')
+    return FileResponse(path, media_type='image/jpeg',
+                        headers={'Cache-Control':'private, max-age=3600'})
 
 
 if (ROOT / 'dist').exists():

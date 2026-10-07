@@ -3,23 +3,35 @@ import sqlite3
 import time
 import uuid
 from pathlib import Path
-from threading import RLock
-import httpx
+from threading import RLock, Lock
 from .models import policy
 from .vectors import text_for
+from .exchange import ExchangeMixin
+from .photos import directory_bytes, photo_path, compress_photo
+import hashlib
+import shutil
 
 
-class Store:
+class Store(ExchangeMixin):
     def __init__(self, directory: Path, vectors, device='FIELD-07'):
         directory.mkdir(parents=True, exist_ok=True)
+        self.directory = directory
+        self.photo_dir = directory / "photos"
+        self.photo_dir.mkdir(exist_ok=True)
+        self.sync_lock = Lock()
         self.db = sqlite3.connect(directory / 'field.sqlite', check_same_thread=False)
         self.db.execute('PRAGMA journal_mode=WAL')
         self.db.executescript('''
             CREATE TABLE IF NOT EXISTS records(id TEXT PRIMARY KEY, body TEXT, vectors TEXT);
             CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY, time REAL, action TEXT, detail TEXT);
+            CREATE TABLE IF NOT EXISTS outbox(id TEXT PRIMARY KEY, body TEXT);
             CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT);
         ''')
         self.lock, self.vectors, self.device = RLock(), vectors, device
+        # Process-local activity must never survive an interrupted run.
+        self.set_setting("syncActive", "false")
+        self.set_setting("connection", "Not checked")
+        self.set_setting("nextSync", "")
         # SQLite is the recovery journal; replay makes the Edge index crash-repairable.
         for body, vec in self.db.execute('SELECT body,vectors FROM records'):
             self.vectors.upsert(json.loads(body), json.loads(vec))
@@ -48,7 +60,12 @@ class Store:
             'SELECT id,time,action,detail FROM events ORDER BY id DESC LIMIT 100')]
 
     def persist(self, record, vectors=None):
-        vectors = vectors or self.vectors.encode(text_for(record))
+        if vectors is None:
+            previous = self.db.execute("SELECT body,vectors FROM records WHERE id=?", (record['id'],)).fetchone()
+            if previous and text_for(json.loads(previous[0])) == text_for(record):
+                vectors = json.loads(previous[1])
+            else:
+                vectors = self.vectors.encode(text_for(record))
         self.db.execute('INSERT OR REPLACE INTO records VALUES (?,?,?)',
                         (record['id'], json.dumps(record), json.dumps(vectors)))
         self.db.commit()
@@ -63,6 +80,11 @@ class Store:
                 raise ValueError('This record changed. Reopen it before saving.')
             if old and old.get('conflict'):
                 raise ValueError('Resolve the exchange conflict before editing this record.')
+            digest = data.get('photoHash')
+            if digest and (not old or digest != old.get('photoHash')) and not photo_path(self.photo_dir, digest).exists():
+                raise ValueError('Photo is missing. Upload it again before saving.')
+            if not self.has_room(32768):
+                raise ValueError('Device storage budget is full. Increase the budget or clear unused photos before saving.')
             now = time.time()
             r = {**(old or {}), **data}
             r.pop('expectedVersion', None)
@@ -72,6 +94,13 @@ class Store:
                      baseRevision=old.get('baseRevision', 0) if old else 0,
                      createdAtTimestamp=old['createdAtTimestamp'] if old else now * 1000,
                      updatedAt=now, device=self.device, dirty=True, eventId=str(uuid.uuid4()))
+            if digest:
+                r['imageUrl'] = '/api/photos/' + digest if photo_path(self.photo_dir, digest).exists() else None
+                r['photoBytes'] = photo_path(self.photo_dir, digest).stat().st_size if r['imageUrl'] else r.get('photoBytes', 0)
+            else:
+                r.update(imageUrl=None, photoBytes=0)
+            if not old or digest != old.get('photoHash') or not r.get('sharePhoto'):
+                r['photoBackedUp'] = False
             eligible, reason = policy(r)
             r.update(syncStatus='PENDING' if eligible else 'LOCAL_ONLY', policyReason=reason,
                      memoryStatus='SHARED' if eligible else 'LOCAL', conflict=None)
@@ -89,70 +118,52 @@ class Store:
         return {'results': results, 'elapsedMs': round((time.perf_counter()-started)*1000, 1),
                 'engine': 'Qdrant Edge 0.8.0', 'mode': request.mode}
 
-    def sync(self, url, token='', metered=False):
+    def storage(self):
+        photos = directory_bytes(self.photo_dir)
+        edge = directory_bytes(self.directory / "edge")
+        total = directory_bytes(self.directory)
+        return dict(dataBytes=total, photoBytes=photos, indexBytes=edge,
+                    otherBytes=max(0,total-photos-edge),
+                    budgetBytes=int(self.setting("storageMiB","512"))*1024*1024,
+                    freeDiskBytes=shutil.disk_usage(self.directory).free,
+                    recordCount=len(self.records()),
+                    protectedPhotos=sum(bool(r.get("photoHash")) for r in self.records()))
+
+    def has_room(self, size):
+        usage = self.storage()
+        return (usage["dataBytes"] + size <= usage["budgetBytes"] and
+                usage["freeDiskBytes"] > size + 16*1024*1024)
+
+    def add_photo(self, data):
+        body, width, height = compress_photo(data)
+        digest = hashlib.sha256(body).hexdigest()
         with self.lock:
-            if self.setting('fieldMode', 'true') == 'true':
-                raise ValueError('Field mode is active. Enable exchange before connecting.')
-            uploaded = downloaded = conflicts = deferred = 0
-            headers = {'Authorization': f'Bearer {token}'} if token else {}
-            try:
-                with httpx.Client(base_url=url, headers=headers, timeout=20) as client:
-                    client.get('/health').raise_for_status()
-                    for r in sorted(self.records(), key=lambda x: x['importance'] != 'High'):
-                        if not r.get('dirty') or r.get('conflict'):
-                            continue
-                        if not policy(r, metered)[0]:
-                            deferred += 1
-                            continue
-                        vec = json.loads(self.db.execute('SELECT vectors FROM records WHERE id=?', (r['id'],)).fetchone()[0])
-                        # Image attachments remain device-local in this release.
-                        public = {k: v for k, v in r.items() if k not in ('imageUrl', 'conflict')}
-                        response = client.post('/exchange', json={'record': public, 'vectors': vec,
-                            'baseRevision': r['baseRevision'], 'eventId': r['eventId']})
-                        if response.status_code == 409:
-                            r.update(conflict=response.json()['detail'], syncStatus='CONFLICT')
-                            self.persist(r, vec)
-                            conflicts += 1
-                            continue
-                        response.raise_for_status()
-                        r.update(baseRevision=response.json()['revision'], dirty=False, syncStatus='SYNCED')
-                        self.persist(r, vec)
-                        uploaded += 1
-                    cursor = int(self.setting('cursor', '0'))
-                    while True:
-                        response = client.get('/changes', params={'after': cursor})
-                        response.raise_for_status()
-                        page = response.json()
-                        for change in page['changes']:
-                            remote = change['record']
-                            local = self.get(remote['id'])
-                            revision = change['revision']
-                            if local and revision <= local.get('baseRevision', 0):
-                                continue
-                            if local and local.get('dirty'):
-                                local.update(conflict={'record': remote, 'revision': revision}, syncStatus='CONFLICT')
-                                self.persist(local)
-                                conflicts += 1
-                            else:
-                                incoming = {**remote, 'baseRevision': revision, 'dirty': False,
-                                    'conflict': None, 'syncStatus': 'SYNCED'}
-                                if local:
-                                    incoming['imageUrl'] = local.get('imageUrl')
-                                self.persist(incoming, change['vectors'])
-                                downloaded += 1
-                        cursor = page['cursor']
-                        self.set_setting('cursor', cursor)
-                        if not page['hasMore']:
-                            break
-                self.set_setting('lastSync', time.time())
-                self.set_setting('connection', 'Connected')
-                result = dict(uploaded=uploaded, downloaded=downloaded, conflicts=conflicts, deferred=deferred)
-                self.log('Knowledge exchanged', json.dumps(result))
-                return result
-            except (httpx.HTTPError, OSError) as exc:
-                self.set_setting('connection', 'Unavailable')
-                self.log('Exchange interrupted', 'Unacknowledged changes remain queued. Retry when the server is reachable.')
-                raise ConnectionError('Shared server is unavailable. Local records and pending changes are safe.') from exc
+            target = photo_path(self.photo_dir, digest)
+            if not target.exists():
+                if not self.has_room(len(body) + 32768):
+                    raise ValueError("Photo would exceed the device storage budget. Increase it or clear unused photos.")
+                temporary = target.with_suffix(".tmp")
+                temporary.write_bytes(body)
+                temporary.replace(target)
+            return dict(photoHash=digest, photoBytes=len(body), imageUrl="/api/photos/"+digest,
+                        width=width, height=height, originalBytes=len(data))
+
+    def cleanup_photos(self):
+        # Attached evidence is never automatically removed. A day protects open, unsaved forms.
+        with self.lock:
+            referenced = {r.get("photoHash") for r in self.records()}
+            for r in self.records():
+                if r.get("conflict"):
+                    referenced.add(r["conflict"]["record"].get("photoHash"))
+            for row in self.db.execute("SELECT body FROM outbox"):
+                referenced.add(json.loads(row[0])["record"].get("photoHash"))
+            removed = 0
+            for file in self.photo_dir.iterdir():
+                if file.stem not in referenced and file.stat().st_mtime < time.time()-86400:
+                    removed += file.stat().st_size
+                    file.unlink()
+            self.log("Unused photo cleanup", f"{removed} bytes freed. Attached photographs were protected.")
+            return {"freedBytes": removed}
 
     def resolve(self, rid, choice, expected_version):
         with self.lock:
@@ -164,7 +175,13 @@ class Store:
             conflict = r['conflict']
             remote = conflict['record']
             if choice == 'SHARED':
-                r = {**remote, 'imageUrl': r.get('imageUrl'), 'dirty': False, 'syncStatus': 'SYNCED'}
+                local_photo = {k:r.get(k) for k in ('photoHash','photoBytes','imageUrl','sharePhoto','photoBackedUp')}
+                preserve = not r.get('sharePhoto')
+                r = {**remote, 'imageUrl': None, 'dirty': False, 'syncStatus': 'SYNCED'}
+                if preserve:
+                    r.update(local_photo)
+                elif r.get('photoHash') and photo_path(self.photo_dir, r['photoHash']).exists():
+                    r['imageUrl'] = '/api/photos/' + r['photoHash']
             else:
                 if choice == 'MERGED':
                     r['fieldNotes'] += '\n\n[Shared observation]\n' + remote['fieldNotes']

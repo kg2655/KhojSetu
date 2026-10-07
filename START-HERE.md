@@ -1,6 +1,6 @@
 # Your KhojSetu walkthrough
 
-The project folder is `C:\Users\user\Documents\ChatGPT\Qdrant Arch\KhojSetu`.
+The project folder is `C:\Users\user\Documents\Qdrant Arch\KhojSetu`.
 
 ## What is running?
 
@@ -127,3 +127,13 @@ npm run build
 ```
 
 Integration tests use actual Qdrant Edge and the cached model; the two-device test also requires the local gateway and Qdrant Server. Tests create synthetic records in the shared collection.
+
+
+## Final-round photo and resource controls
+
+- Record a finding: take a webcam photograph or upload JPEG/PNG/WebP. Keep original research files separately.
+- In the form, explicitly enable photo exchange only when appropriate; the record must also be approved and non-sensitive.
+- System & activity: inspect field-data storage and model cache separately, set budgets, and optionally enable automatic exchange.
+- Field mode pauses exchange. Network requests do not hold the local search/edit lock.
+- Exchange now is one bounded cycle. A larger queue or photo can require several cycles.
+- A phone cannot use the laptop's localhost URL. Phone browser access requires a separately configured reachable server; browser camera access needs HTTPS or another supported secure context.

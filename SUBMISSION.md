@@ -26,7 +26,7 @@ Remote: `https://github.com/kg2655/KhojSetu.git`. Your contributor account must 
 Open PowerShell in the project folder:
 
 ```powershell
-cd 'C:\Users\user\Documents\ChatGPT\Qdrant Arch\KhojSetu'
+cd 'C:\Users\user\Documents\Qdrant Arch\KhojSetu'
 git status
 git branch --show-current
 git fetch origin
