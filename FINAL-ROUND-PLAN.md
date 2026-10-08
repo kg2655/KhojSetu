@@ -42,3 +42,11 @@ Status: core prototype implemented. Remaining work focuses on device validation 
 - Full-resolution original-photo archives.
 
 These are not claimed as shipped features. Current shared-server hosting remains local Docker; a public cloud deployment is optional and would require separate configuration.
+
+## Finale release pass (8 October 2026)
+
+- Field station now keeps excavation context visible and opens the full museum collection on a dedicated page.
+- Non-destructive rehearsal sessions separate practice records from the main notebook and shared collection.
+- Automated rehearsal check covers three retrieval modes, approved exchange, private-note retention and transfer accounting.
+- Final acceptance still requires webcam permission, projector readability and the actual second physical laptop/network.
+- Native phone hosting, image recognition, scientific identification and production multi-team deployment remain outside this release.

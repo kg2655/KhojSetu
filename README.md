@@ -170,3 +170,7 @@ Cleanup only removes unattached files older than 24 hours. It never automaticall
 - Original prototype UI files remain available for reference but are not the active entry point. Its historical README is archived under `docs/archive/`.
 
 See [.env.example](.env.example) for optional process environment settings. `.env` is not auto-loaded; set variables in the terminal that launches the service. Keep credentials and runtime data out of commits.
+
+## Repeatable rehearsal
+
+Use [the isolated rehearsal guide](docs/REHEARSAL.md) to practise with two independent local units without changing the main notebook. `Rehearse-KhojSetu.ps1 Fresh` creates a new practice session with eight sourced museum notes on A and an empty B. Old sessions remain available, so this is not a storage cleanup operation.
