@@ -11,3 +11,6 @@ coverage/
 .models/
 __pycache__/
 .pytest_cache/
+
+# Local working notes
+RESUME.md
