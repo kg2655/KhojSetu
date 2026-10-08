@@ -34,7 +34,7 @@ Potential users include excavation teams, research programmes and archaeological
 | Local semantic memory | Real `qdrant-edge-py==0.8.0` Edge shard stored on the device |
 | Local embeddings | Cached MiniLM ONNX model via FastEmbed; 384-dimensional dense vectors |
 | Hybrid retrieval | Dense cosine and lexical sparse search in Edge; application combines rankings using reciprocal-rank fusion |
-| Context filtering | Layer and material filters |
+| Context filtering | Layer/material filters; schematic grid occupancy and recorded depth ranges by layer |
 | Field photographs | Camera or upload; metadata-stripped JPEG working copies, displayed in records and search results |
 | Offline reference packs | Import up to 100 sourced text references / 1 MiB; local-only by default, resumable within storage budget, existing edits preserved |
 | Selective downloads | Choose a site/material for new findings; existing local records keep receiving revisions |
@@ -149,7 +149,7 @@ Cleanup only removes unattached files older than 24 hours. It never automaticall
 ## Scope and remaining work
 
 - Automatic exchange polls with bounded retries; it is not an operating-system connectivity event subscription.
-- Shared changes can be filtered by site/material within transfer budgets. Existing local records remain subscribed to updates. Selection changes replay history without deleting local evidence. Curated reference-pack import remains unimplemented.
+- Shared changes can be filtered by site/material within transfer budgets. Existing local records remain subscribed to updates. Selection changes replay history without deleting local evidence. Bounded offline reference-pack import is implemented with source labels, duplicate protection and preservation of existing edits.
 - The assistant is extractive, not a generative archaeological expert. Similarity scores are not confidence in historical facts.
 - Image similarity search and full-resolution original-photo backup are not implemented.
 - The current deployment is single-team localhost with one gateway worker. Optional bearer-token authentication is supported; remote hosting also requires HTTPS. Multi-team authorization and distributed scaling require further work.

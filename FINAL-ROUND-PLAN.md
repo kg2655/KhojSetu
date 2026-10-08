@@ -1,5 +1,7 @@
 # KhojSetu final-round implementation plan
-Updated 7 October 2026. Presentation: 11 October.
+Updated 8 October 2026. Presentation: 11 October.
+
+Status: core prototype implemented. Remaining work focuses on device validation and demonstration rehearsal.
 
 ## Implemented in this update
 - Nonblocking network exchange with a durable outbox and version-safe acknowledgements.
@@ -16,11 +18,19 @@ Updated 7 October 2026. Presentation: 11 October.
 - Recoverable gateway writes and isolated regression tests.
 - Bounded offline reference-pack import with source/permission labels, duplicate protection and storage-limited retry.
 - Updated evaluator-facing architecture and limitations.
+- Three public-domain Met photographs bundled offline with object-level attribution; eight sourced reference notes and one-click import.
+- Field station workflow shortcuts, reference gallery and correct source imagery for matching references.
+- Explicit local-service disconnection warning and automatic UI recovery.
+- Read-only service-readiness checker (Check-KhojSetu.ps1).
+- Schematic excavation plan with occupancy shading, layer depth summaries and explanatory legend.
+- Refreshed README screenshot, architecture GIF/SVG/PNG, editable diagram and interactive pitch; archived originals preserved.
 
 ## Remaining before the presentation
 - Test the physical camera on the actual laptop and choose a permitted real photograph.
-- Obtain practitioner feedback and any appropriately licensed reference data.
-- Rehearse the two-device workflow, explain the stack and prepare the presentation.
+- Seek practitioner feedback; use cited desk research if no interview is available. Existing sourced museum data is demonstration reference material, not field validation.
+- Measure process RAM and total installation size on the actual presentation device; low-spec performance is not established.
+- Configure and rehearse two physical devices, or explicitly demonstrate two local units on one laptop.
+- Prepare the final PPT and Hindi/Hinglish roles; use a labelled prerecorded teammate segment if needed.
 - Capture a backup demonstration.
 - Freeze features on 10 October.
 
