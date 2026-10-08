@@ -47,14 +47,14 @@ Potential users include excavation teams, research programmes and archaeological
 | Shared withdrawal | Explicit version-checked request, durable tombstone and offline propagation; local edits retained privately |
 | Conflict review | Keep local, accept shared, or retain both notes |
 | Evidence assistant | Extracts original retrieved notes with record IDs; no external LLM |
-| Interface | Capture/retrieve/exchange shortcuts, museum reference gallery, archive, search, record form, knowledge exchange, activity and service-loss warning |
+| Interface | Compact capture/retrieve/exchange workspace, dedicated museum reference library, archive, search, record form, knowledge exchange, activity and service-loss warning |
 | Real reference imagery | Three public-domain Met object photographs bundled offline, with object-level attribution and matching imported-reference thumbnails |
 
 The sample dataset is **40 synthetic archaeological records**, included in [backend/demo.json](backend/demo.json). They demonstrate the workflow and are not real discoveries or validated archaeological evidence. New field units start empty; choose **Load demo expedition** once to seed the sample data. Personal demo entries and runtime databases are excluded from Git.
 
 The field station also includes **three real public-domain museum photographs** (about 520 KiB combined) and a one-click import of eight sourced text references. Museum photographs illustrate their matching reference notes; they never replace synthetic field evidence. See [image sources and rights](docs/DATASET-SOURCES.md).
 
-![Field station with sourced museum references](docs/media/field-station.png)
+![Dedicated museum reference library](docs/media/field-station.png)
 
 ## How Qdrant is used
 
@@ -174,3 +174,5 @@ See [.env.example](.env.example) for optional process environment settings. `.en
 ## Repeatable rehearsal
 
 Use [the isolated rehearsal guide](docs/REHEARSAL.md) to practise with two independent local units without changing the main notebook. `Rehearse-KhojSetu.ps1 Fresh` creates a new practice session with eight sourced museum notes on A and an empty B. Old sessions remain available, so this is not a storage cleanup operation.
+
+Validation: [final release checks and measured scope](docs/RELEASE-CHECKS.md). Records without an uploaded or sourced photograph show a neutral placeholder; no specimen drawing is presented as photographic evidence.
