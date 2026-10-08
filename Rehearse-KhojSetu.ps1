@@ -7,7 +7,7 @@ $current=Join-Path $base 'current.json'
 function Stop-Rehearsal($session) {
     foreach($item in $session.processes) {
         $process=Get-Process -Id $item.pid -ErrorAction SilentlyContinue
-        if($process -and $process.StartTime.ToUniversalTime().ToString('o') -eq $item.started) {
+        if($process -and $process.StartTime.ToUniversalTime() -eq ([datetime]$item.started).ToUniversalTime()) {
             # The venv launcher may have a Python child; verify its command before stopping it.
             Get-CimInstance Win32_Process -Filter "ParentProcessId = $($item.pid)" | Where-Object { $_.Name -match '^python' -and $_.CommandLine -like '*uvicorn*' } | ForEach-Object { Stop-Process -Id $_.ProcessId -ErrorAction SilentlyContinue }
             Stop-Process -Id $item.pid -ErrorAction SilentlyContinue
@@ -19,7 +19,7 @@ if($Action -eq 'Stop') { if($session){Stop-Rehearsal $session}; Write-Host 'Rehe
 if($Action -eq 'Status') { if($session){$session|ConvertTo-Json -Depth 6}else{Write-Host 'No rehearsal created yet.'}; exit }
 if(!(Test-Path -LiteralPath $pythonExe)){throw 'Complete START-HERE.md setup first.'}
 if(!(Test-Path -LiteralPath (Join-Path $PSScriptRoot 'dist\index.html'))){throw 'Run npm ci and npm run build first.'}
-if($session){Stop-Rehearsal $session}
+if($session){Stop-Rehearsal $session; Start-Sleep -Milliseconds 800}
 foreach($port in @(8002,8003,8012)) {
     $listener=Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue
     if($listener){throw "Port $port is occupied. Stop its owning service before rehearsing. No process was killed."}
