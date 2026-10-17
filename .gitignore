@@ -14,3 +14,7 @@ __pycache__/
 
 # Local working notes
 RESUME.md
+.agents/
+.qdrant-initialized
+.qdrant_server/
+storage/
